@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Medicina Delivery Tracker</title>
+    <style>
+        @page { size: A4 portrait; margin: 10mm; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; color: #000; font-size: 11px; }
+        .container { padding: 5mm; }
+        
+        header { border-bottom: 2px solid #000; margin-bottom: 5px; padding-bottom: 5px; width: 100%; }
+        .header-table { width: 100%; border: none; margin: 0; }
+        .header-table td { border: none; padding: 0; vertical-align: middle; }
+        .logo-box img { height: 65px; max-width: 160px; object-fit: contain; }
+        .qr-header-box img { height: 80px; width: 80px; }
+        .title { font-size: 18pt; font-weight: bold; margin: 0; }
+        .tracker-id { font-size: 11pt; font-weight: 600; margin-top: 2px; color: #444; }
+        
+        .details-table { width: 100%; border: none; margin-bottom: 10px; font-size: 11pt; }
+        .details-table td { border: none; padding: 2px 0; text-align: left; }
+        
+        table.data-table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        table.data-table th, table.data-table td { border: 1px solid #999; padding: 6px; text-align: center; vertical-align: top; }
+        table.data-table td.multi-line { white-space: pre-wrap; line-height: 1.4; text-align: left; padding-left: 10px; }
+        table.data-table th { background-color: #f2f2f2; font-weight: bold; }
+        .total-row { font-weight: bold; background-color: #eee; }
+        
+        .ack-section { font-size: 10pt; margin-top: 15px; text-align: justify; border-top: 2px solid #000; padding-top: 10px; margin-bottom: 15px;}
+        .signature-table { width: 100%; border: none; margin-top: 10px; }
+        .signature-table td { border: none; text-align: left; vertical-align: top; padding: 0; }
+        .signature-box { border: 1px solid #000; padding: 8px; width: 220px; font-size: 9pt; display: inline-block; text-align: left; }
+        .sig-line { border-bottom: 1px solid #000; display: inline-block; width: 110px; height: 12px; margin-left: 5px; }
+        
+        .terms-section h3 { font-size: 11pt; margin-bottom: 5px; text-decoration: underline; }
+        .terms-section p { font-size: 9.5pt; margin: 0 0 10px 0; line-height: 1.3; }
+        .barcodes-page { page-break-before: always; text-align: center; padding-top: 10mm; }
+        .barcode-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 20px; }
+        .barcode-item { border: 1px solid #eee; padding: 5px; }
+        .barcode-item img { width: 150px; height: 45px; }
+
+        .print-footer {
+            position: fixed;
+            bottom: 5px;
+            right: 15px;
+            font-size: 8pt;
+            color: #666;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body onload="renderTracker()">
+    
+    <div class="print-footer">Printed via Medicina Logistics System on: <span id="printDate"></span></div>
+
+    <div class="container" id="mainContent">
+        <header>
+            <table class="header-table">
+                <tr>
+                    <td style="width: 25%;"><div class="logo-box"><img src="MedicinaLogo.png" alt="Medicina Logo"></div></td>
+                    <td style="width: 50%; text-align: center;">
+                        <div class="title">MEDICINA DELIVERY TRACKER</div>
+                        <div class="tracker-id">Tracker ID: <span id="trackerIdDisplay"></span></div>
+                    </td>
+                    <td style="width: 25%; text-align: right;"><div class="qr-header-box"><img id="pkgQR" src=""></div></td>
+                </tr>
+            </table>
+        </header>
+
+        <table class="details-table">
+            <tr>
+                <td style="width: 50%;">From: <strong>Medicina Drug Store</strong></td>
+                <td style="width: 50%; text-align: right;">To: <strong><span id="pharmacyDisplay" style="font-size:13pt;"></span></strong></td>
+            </tr>
+            <tr>
+                <td>Date: <strong id="dateDisplay"></strong></td>
+                <td style="text-align: right;">Crates TR: <strong id="cratesTRDisplay"></strong></td>
+            </tr>
+        </table>
+
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>S.NO</th><th>TRANSFER NUMBER</th><th>VOUCHER NUMBER</th><th>CRATES</th>
+                    <th>BOX</th><th>FRIDGE BAG</th><th>BAG</th><th>PACKER</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+            <tr class="total-row">
+                <td>TOTAL</td>
+                <td id="totTRs"></td>
+                <td id="totVouchers"></td>
+                <td id="totCrates"></td>
+                <td id="totBoxes"></td>
+                <td id="totFB"></td>
+                <td id="totBags"></td>
+                <td></td>
+            </tr>
+        </table>
+        
+        <div style="font-size: 10pt; text-align: justify; border-top: 2px solid #000; padding-top: 10px; margin-top: 15px; margin-bottom: 20px;">
+            I acknowledge that I have received the crates, boxes, and fridge bags listed above and confirm my understanding of the acknowledgement and condition provided in the tracker.
+        </div>
+
+        <table style="width: 100%; border-collapse: collapse; border: none;">
+            <tr>
+                <td style="width: 50%; text-align: left; vertical-align: top; border: none; padding: 0;">
+                    Warehouse Lead:<br>
+                    <strong>Dr. Mohamed Tarek</strong>
+                </td>
+                
+                <td style="width: 50%; vertical-align: top; border: none; padding: 0;">
+                    <table align="right" style="width: 240px; border: 1px solid #000; font-size: 9pt; border-collapse: collapse; text-align: left;">
+                        <tr><td style="border: none; padding: 6px;">Received By: &nbsp;__________________</td></tr>
+                        <tr><td style="border: none; padding: 6px;">Date: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;__________________</td></tr>
+                        <tr><td style="border: none; padding: 6px;">Signature: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;__________________</td></tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+        
+        <div class="terms-section" style="margin-top: 20px;">
+            <h3>Terms and Conditions</h3>
+            <p>All delivered items shall be subject to inspection upon receipt to verify accuracy, quantity, and condition. Any discrepancies, damages, or other issues must be reported to the Warehouse/Logistics Department within 48 hours of receipt.</p>
+        </div>
+    </div>
+
+    <div class="barcodes-page">
+        <h2 style="border-bottom: 2px solid #000; padding-bottom: 10px;">Package Barcodes</h2>
+        <div class="barcode-grid" id="barcodeGrid"></div>
+    </div>
+
+<script>
+    function renderTracker() {
+        try {
+            const now = new Date();
+            const dateOptions = { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' };
+            document.getElementById('printDate').innerText = now.toLocaleDateString('en-GB', dateOptions);
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const rawData = urlParams.get('data');
+            if (!rawData) return;
+
+            const data = JSON.parse(decodeURIComponent(rawData));
+
+            const masterID = data.MasterID || data.PackageData || "";
+            document.getElementById('pkgQR').src = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(masterID)}&size=150x150`;
+            document.getElementById('trackerIdDisplay').innerText = masterID;
+            document.getElementById('pharmacyDisplay').innerText = data.Pharmacy || data.PharmacyName || "";
+            document.getElementById('dateDisplay').innerText = data.Date || data.ShipDate || "";
+            document.getElementById('cratesTRDisplay').innerText = data.CratesTR || "";
+
+            let rowsHtml = "";
+            let countTR = 0;
+            let countVoucher = 0;
+            
+            if (data.Rows && Array.isArray(data.Rows)) {
+                data.Rows.forEach((r, index) => {
+                    let valTR = r.TR || r.TRNo || r.TRNumber || "";
+                    let valV = r.V || r.Voucher || r.VoucherNumber || "";
+                    
+                    let safeTR = valTR ? String(valTR).toUpperCase().trim() : "";
+                    let safeV = valV ? String(valV).toUpperCase().trim() : "";
+
+                    // 🌟 THE FIX: Split by commas/newlines and count the exact number of items!
+                    if (safeTR !== "" && safeTR !== "-") {
+                        let trArray = safeTR.split(/[\n,]+/).filter(x => x.trim() !== '');
+                        countTR += trArray.length;
+                    }
+                    if (safeV !== "" && safeV !== "-") {
+                        let vArray = safeV.split(/[\n,]+/).filter(x => x.trim() !== '');
+                        countVoucher += vArray.length;
+                    }
+
+                    let valC = r.C !== undefined ? r.C : (r.Crates !== undefined ? r.Crates : "");
+                    let valBx = r.Bx !== undefined ? r.Bx : (r.Box !== undefined ? r.Box : "");
+                    let valF = r.F !== undefined ? r.F : (r.Fb !== undefined ? r.Fb : "");
+                    let valBg = r.Bg !== undefined ? r.Bg : (r.Bag !== undefined ? r.Bag : "");
+                    let valP = r.P || r.Name || r.PackerName || "-";
+
+                    rowsHtml += `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td class="multi-line">${safeTR}</td>
+                            <td class="multi-line">${safeV}</td>
+                            <td>${valC}</td>
+                            <td>${valBx}</td>
+                            <td>${valF}</td>
+                            <td>${valBg}</td>
+                            <td>${valP}</td> 
+                        </tr>`;
+                });
+            }
+            document.getElementById('tableBody').innerHTML = rowsHtml;
+
+            // Update Total Row Data
+            document.getElementById('totTRs').innerText = countTR > 0 ? countTR : "";
+            document.getElementById('totVouchers').innerText = countVoucher > 0 ? countVoucher : "";
+            document.getElementById('totCrates').innerText = data.TC !== undefined ? data.TC : (data.TotalCrates || "");
+            document.getElementById('totBoxes').innerText = data.TBx !== undefined ? data.TBx : (data.TotalBox || data.TotalBoxes || "");
+            document.getElementById('totFB').innerText = data.TF !== undefined ? data.TF : (data.TotalFb || "");
+            document.getElementById('totBags').innerText = data.TBg !== undefined ? data.TBg : (data.TotalBag || data.TotalBags || "");
+
+            let bcHtml = "";
+            if (data.Barcodes && Array.isArray(data.Barcodes)) {
+                data.Barcodes.forEach(b => {
+                    const codeValue = typeof b === 'object' ? (b.Code || b.BarcodeNumber) : b;
+                    if(codeValue) {
+                        bcHtml += `<div class="barcode-item"><img src="https://barcode.tec-it.com/barcode.ashx?data=${codeValue}&code=Code128"></div>`;
+                    }
+                });
+            }
+            document.getElementById('barcodeGrid').innerHTML = bcHtml;
+
+        } catch (e) {
+            console.error("Rendering Error:", e);
+            document.body.innerHTML = "<h1 style='color:red; text-align:center;'>Error Loading Tracker: Check your Power Apps Data</h1>";
+        }
+    }
+</script>
+</body>
+</html>

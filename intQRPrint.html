@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Internal Transfer Labels</title>
+    <style>
+        /* Exact page dimensions */
+        @page { size: 10cm 6cm; margin: 0; }
+        
+        body { 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            background: #fff; 
+        }
+
+        .qr-item {
+            width: 10cm; 
+            height: 5.9cm; 
+            display: flex; 
+            flex-direction: column;
+            justify-content: flex-start; 
+            align-items: center;
+            text-align: center; 
+            box-sizing: border-box;
+            padding: 2mm; 
+            page-break-after: always;
+            overflow: hidden; 
+        }
+
+        .header-store { 
+            font-size: 10pt; 
+            font-weight: 900; 
+            text-transform: uppercase; 
+            margin: 0 0 1.5mm 0; 
+            padding-bottom: 2px; 
+            line-height: 1; 
+            width: 90%;
+        }
+
+        .qr-item img { 
+            width: 2.7cm; 
+            height: 2.7cm; 
+            object-fit: contain; 
+            margin-top: 1mm;
+            margin-bottom: 1.5mm;
+        }
+
+        .pharmacy-name { 
+            font-size: 15pt !important; 
+            font-weight: bold; 
+            margin: 0; 
+            line-height: 1.1; 
+        }
+
+        .container-info { 
+            font-size: 11pt; 
+            font-weight: 700; 
+            color: #000; 
+            margin-top: 1.5mm; 
+            margin-bottom: 0;
+            line-height: 1.1; 
+        }
+
+        @media print { 
+            body { margin: 0; } 
+            .qr-item { page-break-after: always; break-after: page; } 
+        }
+    </style>
+</head>
+<body>
+    <div id="qrContainer">Loading labels...</div>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const dataParam = urlParams.get('data');
+        const qrContainer = document.getElementById('qrContainer');
+
+        if (!dataParam) {
+            qrContainer.innerHTML = 'Error: No data found.';
+        } else {
+            try {
+                const qrData = JSON.parse(decodeURIComponent(dataParam));
+                qrContainer.innerHTML = '';
+                
+                qrData.forEach(item => {
+                    const qrCodeURL = "https://api.qrserver.com/v1/create-qr-code/?data=" + 
+                                     encodeURIComponent(item.BarcodeID) + "&size=300x300";
+                    
+                    // 🌟 FIX: Check if BundleDetails exists, and format it with brackets!
+                    const extraText = item.ExtraDetails ? `(${item.ExtraDetails})` : '';
+                    
+                    // Build the HTML for the label
+                    const div = document.createElement('div');
+                    div.className = 'qr-item';
+                    div.innerHTML = `
+                        <div class="header-store">Medicina Drug Store - Internal Transfer</div>
+                        <img src="${qrCodeURL}">
+                        <div class="pharmacy-name">${item.PharmacyName || ''}</div>
+                        
+                        <div class="container-info">${item.ContainerInfo || ''}${extraText}</div>
+                    `;
+                    qrContainer.appendChild(div);
+                });
+            } catch (e) { 
+                qrContainer.innerHTML = 'Error parsing data.'; 
+            }
+        }
+    </script>
+</body>
+</html>

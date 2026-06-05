@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Zebra Shipment Labels</title>
+    <style>
+        @page { size: 10cm 6cm; margin: 0; }
+        body { margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; background: #fff; }
+        .qr-item {
+            width: 10cm; height: 6cm;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            text-align: center; box-sizing: border-box;
+            padding: 5mm; page-break-after: always;
+        }
+        .header-store { font-size: 10pt; font-weight: 800; text-transform: uppercase; margin-bottom: 1.5mm; }
+        .qr-item img { width: 3.2cm; height: 3.2cm; object-fit: contain; }
+        .pharmacy-name { font-size: 14pt !important; font-weight: bold; margin-top: 1.5mm; }
+        .container-info { font-size: 11pt; font-weight: 700; color: #000; margin-top: 1mm; }
+        /* Updated line-height and word-break for multiple TRs */
+        .tr-numbers { font-size: 8pt; margin-top: 1mm; max-width: 90%; word-break: break-word; line-height: 1.2; }
+        @media print { body { margin: 0; } .qr-item { page-break-after: always; break-after: page; } }
+    </style>
+</head>
+<body>
+    <div id="qrContainer">Loading labels...</div>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const dataParam = urlParams.get('data');
+        const qrContainer = document.getElementById('qrContainer');
+
+        if (!dataParam) {
+            qrContainer.innerHTML = 'Error: No data found.';
+        } else {
+            try {
+                const qrData = JSON.parse(decodeURIComponent(dataParam));
+                qrContainer.innerHTML = '';
+                
+                qrData.forEach(item => {
+                    const qrCodeURL = "https://api.qrserver.com/v1/create-qr-code/?data=" + 
+                                     encodeURIComponent(item.BarcodeID) + "&size=300x300";
+                    
+                    // NEW: Extract, clean, and deduplicate TR numbers for the printed label
+                    let rawTRString = "";
+                    if (Array.isArray(item.TRNo)) {
+                        rawTRString = item.TRNo.join(',');
+                    } else if (typeof item.TRNo === 'string') {
+                        rawTRString = item.TRNo;
+                    } else {
+                        rawTRString = String(item.TRNo || '');
+                    }
+
+                    // 1. Split by commas or newlines, remove extra spaces, and filter out blanks
+                    let trArray = rawTRString.split(/[\n,]+/).map(tr => tr.trim()).filter(tr => tr !== '');
+
+                    // 2. Use a Set to instantly remove any duplicates
+                    let uniqueTRs = [...new Set(trArray)];
+
+                    // 3. Join the clean, unique list with commas for printing
+                    let displayTRs = uniqueTRs.join(', ');
+
+                    // Build the HTML for this specific label
+                    const div = document.createElement('div');
+                    div.className = 'qr-item';
+                    div.innerHTML = `
+                        <div class="header-store">Medicina Drug Store</div>
+                        <img src="${qrCodeURL}">
+                        <div class="pharmacy-name">${item.PharmacyName || ''}</div>
+                        <div class="container-info">${item.ContainerInfo || ''}</div>
+                        <div class="tr-numbers"><strong>TR's:</strong> ${displayTRs}</div>
+                    `;
+                    qrContainer.appendChild(div);
+                });
+            } catch (e) { 
+                qrContainer.innerHTML = 'Error parsing data.'; 
+            }
+        }
+    </script>
+</body>
+</html>
