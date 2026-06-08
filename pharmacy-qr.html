@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Packing QR Labels</title>
+    <style>
+        /* Exact page dimensions for the sticker printer */
+        @page { size: 10cm 6cm; margin: 0; }
+        
+        body { 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            background: #fff; 
+        }
+
+        .qr-item {
+            width: 10cm; 
+            height: 5.9cm; 
+            display: flex; 
+            flex-direction: column;
+            justify-content: flex-start; 
+            align-items: center;
+            text-align: center; 
+            box-sizing: border-box;
+            padding: 2mm; 
+            page-break-after: always;
+            overflow: hidden; 
+        }
+
+        /* 1. Header: Sender (User) Pharmacy */
+        .header-store { 
+            font-size: 9pt; 
+            font-weight: 700; 
+            text-transform: uppercase; 
+            margin: 0 0 1mm 0; 
+            color: #555;
+            line-height: 1; 
+            width: 95%;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 2px;
+        }
+
+        /* 2. Big Font: Receiving Pharmacy */
+        .pharmacy-name { 
+            font-size: 16pt !important; 
+            font-weight: 900; 
+            margin: 1mm 0 0 0; 
+            line-height: 1.1; 
+            color: #000;
+        }
+
+        /* 3. QR Code */
+        .qr-item img { 
+            width: 2.8cm; 
+            height: 2.8cm; 
+            object-fit: contain; 
+            margin-top: 1.5mm;
+            margin-bottom: 1.5mm;
+        }
+
+        /* 4. Bottom Text: Container Details */
+        .container-info { 
+            font-size: 12pt; 
+            font-weight: 800; 
+            color: #000; 
+            margin: 0;
+            line-height: 1.1; 
+        }
+
+        @media print { 
+            body { margin: 0; } 
+            .qr-item { page-break-after: always; break-after: page; } 
+        }
+    </style>
+</head>
+<body>
+    <div id="qrContainer">Loading labels...</div>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const dataParam = urlParams.get('data');
+        const qrContainer = document.getElementById('qrContainer');
+
+        if (!dataParam) {
+            qrContainer.innerHTML = 'Error: No data found.';
+        } else {
+            try {
+                const qrData = JSON.parse(decodeURIComponent(dataParam));
+                qrContainer.innerHTML = '';
+                
+                qrData.forEach(item => {
+                    const qrCodeURL = "https://api.qrserver.com/v1/create-qr-code/?data=" + 
+                                     encodeURIComponent(item.BarcodeID) + "&size=300x300";
+                    
+                    // Build the HTML for the label (Only exactly what you requested)
+                    const div = document.createElement('div');
+                    div.className = 'qr-item';
+                    div.innerHTML = `
+                        <div class="header-store">From: ${item.ShippingPharmacy || 'INTERNAL TRANSFER'}</div>
+                        <div class="pharmacy-name">${item.PharmacyName || ''}</div>
+                        <img src="${qrCodeURL}" alt="QR Code">
+                        <div class="container-info">${item.ContainerInfo || ''}</div>
+                    `;
+                    qrContainer.appendChild(div);
+                });
+            } catch (e) { 
+                qrContainer.innerHTML = 'Error parsing data.'; 
+            }
+        }
+    </script>
+</body>
+</html>
