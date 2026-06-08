@@ -20,7 +20,7 @@
             height: 5.9cm; 
             display: flex; 
             flex-direction: column;
-            justify-content: center; /* Centers everything since we removed the middle text */
+            justify-content: center; 
             align-items: center;
             text-align: center; 
             box-sizing: border-box;
@@ -29,20 +29,17 @@
             overflow: hidden; 
         }
 
-        /* 🌟 FIX 1 & 2: Sender Pharmacy Header (Bigger and Bolder) */
+        /* 🌟 FIX 1 & 2: Header is now Larger, Semi-Bold, and has NO underline */
         .header-store { 
-            font-size: 14pt; 
-            font-weight: 900; 
+            font-size: 16pt; 
+            font-weight: 600; /* Semi-bold */
             text-transform: uppercase; 
             margin: 0 0 2mm 0; 
             color: #000;
             line-height: 1.2; 
             width: 95%;
-            border-bottom: 2px solid #000;
-            padding-bottom: 3px;
         }
 
-        /* 🌟 QR Code (Slightly larger now that we have more room) */
         .qr-item img { 
             width: 3.2cm; 
             height: 3.2cm; 
@@ -51,10 +48,10 @@
             margin-bottom: 2mm;
         }
 
-        /* 🌟 Container Info (e.g., Box : 1 / 2) */
+        /* 🌟 FIX 3: Container Info is now Normal weight (not bold) */
         .container-info { 
             font-size: 14pt; 
-            font-weight: 900; 
+            font-weight: normal; /* Standard text weight */
             color: #000; 
             margin: 0;
             line-height: 1.1; 
@@ -87,7 +84,6 @@
                     const div = document.createElement('div');
                     div.className = 'qr-item';
                     
-                    // HTML injected here!
                     div.innerHTML = `
                         <div class="header-store">${item.ShippingPharmacy || 'INTERNAL TRANSFER'}</div>
                         <img src="${qrCodeURL}" alt="QR Code">
