@@ -43,11 +43,20 @@
         .barcode-text { margin-top: 6px; font-weight: 600; font-size: 8.5pt; color: #0056b3; }
 
         .print-footer { position: fixed; bottom: 5px; right: 15px; font-size: 8pt; color: #666; font-style: italic; }
+
+        /* Error Banner Styling */
+        #errorBanner { display: none; background: #ffebee; border: 2px solid #f44336; color: #b71c1c; padding: 20px; margin: 20px; border-radius: 8px; font-size: 14px; }
     </style>
 </head>
 <body onload="renderTracker()">
     
-    <div class="print-footer">Printed via Medicina Logistics System on: <span id="printDate"></span></div>
+    <div id="errorBanner">
+        <h2 style="margin-top:0;">⚠️ Tracker Generation Error</h2>
+        <p id="errorMsg"></p>
+        <p style="font-size:10px; color:#666;">Please take a screenshot of this error and show it to the developer.</p>
+    </div>
+
+    <div class="print-footer" id="footerText">Printed via Medicina Logistics System on: <span id="printDate"></span></div>
 
     <div class="container" id="mainContent">
         <header>
@@ -124,7 +133,7 @@
         </table>
     </div>
 
-    <div class="barcodes-page" id="barcodesSection">
+    <div class="barcodes-page" id="barcodesSection" style="display:none;">
         <div class="barcodes-title">Crate Barcodes</div>
         <div class="barcode-grid" id="barcodeGrid"></div>
     </div>
@@ -138,7 +147,12 @@
 
             const urlParams = new URLSearchParams(window.location.search);
             const rawData = urlParams.get('data');
-            if (!rawData) return;
+            
+            // If there is no data in the URL, don't crash, just show the blank template
+            if (!rawData) {
+                console.warn("No data found in URL.");
+                return;
+            }
 
             const data = JSON.parse(decodeURIComponent(rawData));
 
@@ -146,72 +160,10 @@
             document.getElementById('pkgQR').src = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(masterID)}&size=150x150`;
             document.getElementById('trackerIdDisplay').innerText = masterID;
             document.getElementById('dateDisplay').innerText = data.Date || "";
-            
             document.getElementById('dispatchDisplay').innerText = data.DispatchLoc || "";
 
             let rowsHtml = "";
             let totalCratesCalculated = data.TC || 0;
             
             if (data.Rows && Array.isArray(data.Rows)) {
-                data.Rows.forEach((r, index) => {
-                    let safeTR = r.TR ? String(r.TR).toUpperCase().trim() : "";
-                    
-                    // 🌟 THIS IS THE FIX: It grabs the pharmacy specifically mapped to this row (RP)
-                    let rowPharmacy = r.RP || "";
-
-                    rowsHtml += `
-                        <tr>
-                            <td>${index + 1}</td>
-                            <td class="multi-line">${safeTR}</td>
-                            <td>${rowPharmacy}</td> <td>${r.C || 0}</td>
-                            <td>${r.Bndl || 0}</td>
-                            <td>${r.Bx || 0}</td>
-                            <td>${r.F || 0}</td>
-                            <td>${r.Bg || 0}</td>
-                        </tr>`;
-                });
-            }
-            document.getElementById('tableBody').innerHTML = rowsHtml;
-
-            document.getElementById('cardCrates').innerText = totalCratesCalculated;
-            document.getElementById('cardBundles').innerText = data.TBndl || "0";
-            document.getElementById('cardBoxes').innerText = data.TBx || "0";
-            document.getElementById('cardFridge').innerText = data.TF || "0";
-            document.getElementById('cardBags').innerText = data.TBg || "0";
-
-            document.getElementById('totCrates').innerText = totalCratesCalculated > 0 ? totalCratesCalculated : "";
-            document.getElementById('totBundles').innerText = data.TBndl || "";
-            document.getElementById('totBoxes').innerText = data.TBx || "";
-            document.getElementById('totFB').innerText = data.TF || "";
-            document.getElementById('totBags').innerText = data.TBg || "";
-
-            let bcHtml = "";
-            let barcodeFound = false;
-
-            if (data.Barcodes && Array.isArray(data.Barcodes)) {
-                data.Barcodes.forEach(b => {
-                    if (b.IsCrate && b.Code) {
-                        barcodeFound = true;
-                        bcHtml += `
-                            <div class="barcode-item">
-                                <img src="https://barcode.tec-it.com/barcode.ashx?data=${encodeURIComponent(b.Code)}&code=Code128&dpi=96">
-                                <div class="barcode-text">${b.Code}</div>
-                            </div>`;
-                    }
-                });
-            }
-
-            if (barcodeFound) {
-                document.getElementById('barcodeGrid').innerHTML = bcHtml;
-                document.getElementById('barcodesSection').style.display = "block";
-            } else {
-                document.getElementById('barcodesSection').style.display = "none";
-            }
-
-        } catch (e) {
-            console.error("Rendering Error:", e);
-        }
-    }
-</script>
-</body>
-</html>
+                data.
