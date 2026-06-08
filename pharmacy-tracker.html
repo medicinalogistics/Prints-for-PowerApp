@@ -8,7 +8,6 @@
         body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; color: #000; font-size: 11px; background-color: #fff; }
         .container { padding: 2mm; }
         
-        /* Header & Logo */
         header { border-bottom: 3px solid #0056b3; margin-bottom: 12px; padding-bottom: 10px; width: 100%; }
         .header-table { width: 100%; border: none; margin: 0; }
         .header-table td { border: none; padding: 0; vertical-align: middle; }
@@ -18,29 +17,24 @@
         .title { font-size: 18pt; font-weight: 700; margin: 0; color: #0056b3; text-transform: uppercase; text-align: center; }
         .tracker-id { font-size: 11pt; font-weight: 600; margin-top: 5px; color: #333; text-align: center; }
         
-        /* Details Table (Receiving Pharmacy Removed) */
         .details-table { width: 100%; border: 1px solid #b3d4f5; margin-bottom: 15px; font-size: 10.5pt; background-color: #f8fbff; padding: 12px; border-left: 6px solid #0056b3; }
         .details-table td { border: none; padding: 4px 6px; text-align: left; }
         
-        /* Summary Grid */
         .summary-grid { margin-top: 5px; margin-bottom: 20px; display: flex; justify-content: space-between; text-align: center; font-size: 10px; }
         .grid-card { padding: 6px 4px; border-radius: 4px; flex: 1; margin: 0 3px; border: 1px solid #b3d4f5; background: #f8fbff; border-top: 3px solid #0056b3; }
         .card-val { font-size: 16px; font-weight: 700; margin-top: 3px; display: block; color: #0056b3; }
 
-        /* Data Grid (Added Receiving Pharmacy Column) */
         table.data-table { width: 100%; border-collapse: collapse; margin: 15px 0; }
         table.data-table th, table.data-table td { border: 1px solid #b3d4f5; padding: 9px 4px; text-align: center; vertical-align: middle; }
         table.data-table td.multi-line { white-space: pre-wrap; text-align: left; padding-left: 8px; font-weight: 600; }
         table.data-table th { background-color: #0056b3; font-weight: 700; color: #fff; font-size: 8.5pt; }
         .total-row { font-weight: bold; background-color: #e6f2ff !important; border-top: 2.5px solid #0056b3; }
         
-        /* Acknowledgement & Signatures */
         .ack-section { font-size: 10pt; margin-top: 25px; text-align: justify; border-top: 2px solid #0056b3; padding-top: 15px; margin-bottom: 25px; line-height: 1.6; font-style: italic; color: #333; }
         .signatures-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         .signatures-table td { width: 50%; padding: 10px; font-size: 10.5pt; font-weight: 600; vertical-align: bottom; height: 70px; }
         .sig-line { border-bottom: 1px solid #000; width: 80%; display: inline-block; margin-bottom: 5px; }
 
-        /* Barcodes Page */
         .barcodes-page { page-break-before: always; text-align: center; padding-top: 8mm; }
         .barcodes-title { border-bottom: 2px solid #0056b3; padding-bottom: 12px; font-size: 15pt; font-weight: 700; margin-bottom: 25px; text-transform: uppercase; color: #0056b3; }
         .barcode-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; margin-top: 20px; }
@@ -75,7 +69,7 @@
 
         <table class="details-table">
             <tr>
-                <td style="width: 50%;">Dispatch Location: <strong>Medicina Drug Store</strong></td>
+                <td style="width: 50%;">Dispatch Location: <strong id="dispatchDisplay"></strong></td>
                 <td style="width: 50%; text-align: right;">Shipment Date: <strong id="dateDisplay"></strong></td>
             </tr>
         </table>
@@ -92,14 +86,13 @@
             <thead>
                 <tr>
                     <th style="width: 5%;">S.NO</th>
-                    <th style="width: 20%;">TRANSFER NUMBERS</th>
-                    <th style="width: 23%;">RECEIVING PHARMACY</th>
+                    <th style="width: 30%;">TRANSFER NUMBERS</th>
+                    <th style="width: 25%;">RECEIVING PHARMACY</th>
                     <th style="width: 8%;">CRATES</th>
                     <th style="width: 8%;">BUNDLES</th>
                     <th style="width: 8%;">BOXES</th>
                     <th style="width: 8%;">FRIDGE</th>
                     <th style="width: 8%;">BAGS</th>
-                    <th style="width: 12%;">PACKER</th>
                 </tr>
             </thead>
             <tbody id="tableBody"></tbody>
@@ -110,7 +103,6 @@
                 <td id="totBoxes"></td>
                 <td id="totFB"></td>
                 <td id="totBags"></td>
-                <td></td>
             </tr>
         </table>
 
@@ -155,8 +147,9 @@
             document.getElementById('trackerIdDisplay').innerText = masterID;
             document.getElementById('dateDisplay').innerText = data.Date || "";
             
-            // Note: The Receiving Pharmacy is pulled globally from the original data object 
-            // since the Power Apps JSON sends 'data.Pharmacy'.
+            // 🌟 Dynamic Dispatch Location directly from Power Apps!
+            document.getElementById('dispatchDisplay').innerText = data.DispatchLoc || "Medicina Drug Store";
+            
             const globalPharmacy = data.Pharmacy || "";
 
             let rowsHtml = "";
@@ -170,19 +163,17 @@
                         <tr>
                             <td>${index + 1}</td>
                             <td class="multi-line">${safeTR}</td>
-                            <td style="font-weight: bold; color: #0056b3;">${globalPharmacy}</td>
+                            <td>${globalPharmacy}</td>
                             <td>${r.C || 0}</td>
                             <td>${r.Bndl || 0}</td>
                             <td>${r.Bx || 0}</td>
                             <td>${r.F || 0}</td>
                             <td>${r.Bg || 0}</td>
-                            <td>${r.P || "-"}</td> 
                         </tr>`;
                 });
             }
             document.getElementById('tableBody').innerHTML = rowsHtml;
 
-            // Populate Totals
             document.getElementById('cardCrates').innerText = totalCratesCalculated;
             document.getElementById('cardBundles').innerText = data.TBndl || "0";
             document.getElementById('cardBoxes').innerText = data.TBx || "0";
@@ -195,7 +186,6 @@
             document.getElementById('totFB').innerText = data.TF || "";
             document.getElementById('totBags').innerText = data.TBg || "";
 
-            // Populate Barcodes Page
             let bcHtml = "";
             let barcodeFound = false;
 
