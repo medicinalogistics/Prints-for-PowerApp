@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Medicina Internal Delivery Tracker</title>
+    <style>
+        @page { size: A4 portrait; margin: 12mm 10mm 12mm 10mm; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; color: #000; font-size: 11px; background-color: #fff; }
+        .container { padding: 2mm; }
+        
+        header { border-bottom: 3px solid #0056b3; margin-bottom: 12px; padding-bottom: 10px; width: 100%; }
+        .header-table { width: 100%; border: none; margin: 0; }
+        .header-table td { border: none; padding: 0; vertical-align: middle; }
+        .qr-header-box img { height: 75px; width: 75px; border: 2px solid #0056b3; padding: 3px; border-radius: 4px; background-color: #fff; }
+        .title { font-size: 18pt; font-weight: 700; margin: 0; color: #0056b3; text-transform: uppercase; }
+        .tracker-id { font-size: 11pt; font-weight: 600; margin-top: 5px; color: #333; }
+        
+        .details-table { width: 100%; border: 1px solid #b3d4f5; margin-bottom: 15px; font-size: 10.5pt; background-color: #f8fbff; padding: 12px; border-left: 6px solid #0056b3; }
+        .details-table td { border: none; padding: 4px 6px; text-align: left; }
+        
+        table.data-table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        table.data-table th, table.data-table td { border: 1px solid #b3d4f5; padding: 9px 6px; text-align: center; vertical-align: middle; }
+        table.data-table td.multi-line { white-space: pre-wrap; text-align: left; padding-left: 12px; font-weight: 600; }
+        table.data-table th { background-color: #0056b3; font-weight: 700; color: #fff; font-size: 9.5pt; }
+        .total-row { font-weight: bold; background-color: #e6f2ff !important; border-top: 2.5px solid #0056b3; }
+        
+        .summary-grid { margin-top: 5px; margin-bottom: 20px; display: flex; justify-content: space-between; text-align: center; font-size: 10px; }
+        .grid-card { padding: 6px 4px; border-radius: 4px; flex: 1; margin: 0 3px; border: 1px solid #b3d4f5; background: #f8fbff; border-top: 3px solid #0056b3; }
+        .card-val { font-size: 16px; font-weight: 700; margin-top: 3px; display: block; color: #0056b3; }
+
+        .barcodes-page { page-break-before: always; text-align: center; padding-top: 8mm; }
+        .barcodes-title { border-bottom: 2px solid #0056b3; padding-bottom: 12px; font-size: 15pt; font-weight: 700; margin-bottom: 25px; text-transform: uppercase; color: #0056b3; }
+        .barcode-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; margin-top: 20px; }
+        .barcode-item { border: 1px solid #b3d4f5; padding: 10px; background: #f8fbff; border-radius: 4px; display: inline-block; min-width: 170px; }
+        .barcode-item img { width: 165px; height: 48px; display: block; margin: 0 auto; }
+        .barcode-text { margin-top: 6px; font-weight: 600; font-size: 8.5pt; color: #0056b3; }
+
+        .print-footer { position: fixed; bottom: 5px; right: 15px; font-size: 8pt; color: #666; font-style: italic; }
+    </style>
+</head>
+<body onload="renderTracker()">
+    
+    <div class="print-footer">Printed via Medicina Logistics System on: <span id="printDate"></span></div>
+
+    <div class="container" id="mainContent">
+        <header>
+            <table class="header-table">
+                <tr>
+                    <td style="width: 75%; text-align: left;">
+                        <div class="title">Medicina Internal Delivery Tracker</div>
+                        <div class="tracker-id">Tracker ID: <span id="trackerIdDisplay"></span></div>
+                    </td>
+                    <td style="width: 25%; text-align: right;"><div class="qr-header-box"><img id="pkgQR" src=""></div></td>
+                </tr>
+            </table>
+        </header>
+
+        <table class="details-table">
+            <tr>
+                <td style="width: 50%;">Dispatch Location: <strong>Medicina Drug Store</strong></td>
+                <td style="width: 50%; text-align: right;">Receiving Pharmacy: <strong><span id="pharmacyDisplay" style="font-size:12.5pt; font-weight: 700; color: #0056b3;"></span></strong></td>
+            </tr>
+            <tr>
+                <td>Shipment Date: <strong id="dateDisplay"></strong></td>
+                <td style="text-align: right;">Crates TR Log: <strong id="cratesTRDisplay"></strong></td>
+            </tr>
+        </table>
+
+        <div class="summary-grid">
+            <div class="grid-card"><b>Total Crates</b><span id="cardCrates" class="card-val">0</span></div>
+            <div class="grid-card"><b>Total Bundles</b><span id="cardBundles" class="card-val">0</span></div>
+            <div class="grid-card"><b>Total Boxes</b><span id="cardBoxes" class="card-val">0</span></div>
+            <div class="grid-card"><b>Fridge Bags</b><span id="cardFridge" class="card-val">0</span></div>
+            <div class="grid-card"><b>Standard Bags</b><span id="cardBags" class="card-val">0</span></div>
+        </div>
+
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th style="width: 6%;">S.NO</th>
+                    <th style="width: 38%;">TRANSFER NUMBERS</th>
+                    <th style="width: 10%;">CRATES</th>
+                    <th style="width: 10%;">BUNDLES</th>
+                    <th style="width: 10%;">BOXES</th>
+                    <th style="width: 10%;">FRIDGE</th>
+                    <th style="width: 10%;">BAGS</th>
+                    <th style="width: 16%;">PACKER</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+            <tr class="total-row">
+                <td colspan="1">TOTAL</td>
+                <td id="totTRs"></td>
+                <td id="totCrates"></td>
+                <td id="totBundles"></td>
+                <td id="totBoxes"></td>
+                <td id="totFB"></td>
+                <td id="totBags"></td>
+                <td></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="barcodes-page" id="barcodesSection">
+        <div class="barcodes-title">Crate Barcodes</div>
+        <div class="barcode-grid" id="barcodeGrid"></div>
+    </div>
+
+<script>
+    function renderTracker() {
+        try {
+            const now = new Date();
+            const dateOptions = { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' };
+            document.getElementById('printDate').innerText = now.toLocaleDateString('en-GB', dateOptions);
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const rawData = urlParams.get('data');
+            if (!rawData) return;
+
+            const data = JSON.parse(decodeURIComponent(rawData));
+
+            const masterID = data.MasterID || "";
+            document.getElementById('pkgQR').src = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(masterID)}&size=150x150`;
+            document.getElementById('trackerIdDisplay').innerText = masterID;
+            document.getElementById('pharmacyDisplay').innerText = data.Pharmacy || "";
+            document.getElementById('dateDisplay').innerText = data.Date || "";
+            
+            let rowsHtml = "";
+            let countTR = 0;
+            let totalCratesCalculated = data.TC || 0;
+            
+            if (data.Rows && Array.isArray(data.Rows)) {
+                data.Rows.forEach((r, index) => {
+                    let safeTR = r.TR ? String(r.TR).toUpperCase().trim() : "";
+                    if (safeTR !== "") countTR++;
+
+                    rowsHtml += `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td class="multi-line">${safeTR}</td>
+                            <td>${r.C || 0}</td>
+                            <td>${r.Bndl || 0}</td>
+                            <td>${r.Bx || 0}</td>
+                            <td>${r.F || 0}</td>
+                            <td>${r.Bg || 0}</td>
+                            <td>${r.P || "-"}</td> 
+                        </tr>`;
+                });
+            }
+            document.getElementById('tableBody').innerHTML = rowsHtml;
+
+            // Populate Totals
+            document.getElementById('cardCrates').innerText = totalCratesCalculated;
+            document.getElementById('cardBundles').innerText = data.TBndl || "0";
+            document.getElementById('cardBoxes').innerText = data.TBx || "0";
+            document.getElementById('cardFridge').innerText = data.TF || "0";
+            document.getElementById('cardBags').innerText = data.TBg || "0";
+
+            document.getElementById('totTRs').innerText = countTR > 0 ? countTR : "";
+            document.getElementById('totCrates').innerText = totalCratesCalculated > 0 ? totalCratesCalculated : "";
+            document.getElementById('totBundles').innerText = data.TBndl || "";
+            document.getElementById('totBoxes').innerText = data.TBx || "";
+            document.getElementById('totFB').innerText = data.TF || "";
+            document.getElementById('totBags').innerText = data.TBg || "";
+
+            // Populate Barcodes Page
+            let bcHtml = "";
+            let barcodeFound = false;
+
+            if (data.Barcodes && Array.isArray(data.Barcodes)) {
+                data.Barcodes.forEach(b => {
+                    if (b.IsCrate && b.Code) {
+                        barcodeFound = true;
+                        bcHtml += `
+                            <div class="barcode-item">
+                                <img src="https://barcode.tec-it.com/barcode.ashx?data=${encodeURIComponent(b.Code)}&code=Code128&dpi=96">
+                                <div class="barcode-text">${b.Code}</div>
+                            </div>`;
+                    }
+                });
+            }
+
+            if (barcodeFound) {
+                document.getElementById('barcodeGrid').innerHTML = bcHtml;
+                document.getElementById('barcodesSection').style.display = "block";
+            } else {
+                document.getElementById('barcodesSection').style.display = "none";
+            }
+
+        } catch (e) {
+            console.error("Rendering Error:", e);
+        }
+    }
+</script>
+</body>
+</html>
