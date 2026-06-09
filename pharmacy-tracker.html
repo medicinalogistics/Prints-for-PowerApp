@@ -78,8 +78,9 @@
 
         <table class="details-table">
             <tr>
-                <td style="width: 50%;">Dispatch Location: <strong id="dispatchDisplay"></strong></td>
-                <td style="width: 50%; text-align: right;">Shipment Date: <strong id="dateDisplay"></strong></td>
+                <td style="width: 33%;">Dispatch Location: <strong id="dispatchDisplay"></strong></td>
+                <td style="width: 34%; text-align: center;">Receiving Location: <strong id="receivingLocDisplay"></strong></td>
+                <td style="width: 33%; text-align: right;">Shipment Date: <strong id="dateDisplay"></strong></td>
             </tr>
         </table>
 
@@ -161,6 +162,7 @@
             document.getElementById('trackerIdDisplay').innerText = masterID;
             document.getElementById('dateDisplay').innerText = data.Date || "";
             document.getElementById('dispatchDisplay').innerText = data.DispatchLoc || "";
+            document.getElementById('receivingLocDisplay').innerText = data.ReceivingLoc || "";
 
             let rowsHtml = "";
             let totalCratesCalculated = data.TC || 0;
