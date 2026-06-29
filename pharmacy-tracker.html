@@ -88,8 +88,8 @@
             <div class="grid-card"><b>Total Crates</b><span id="cardCrates" class="card-val">0</span></div>
             <div class="grid-card"><b>Total Bundles</b><span id="cardBundles" class="card-val">0</span></div>
             <div class="grid-card"><b>Total Boxes</b><span id="cardBoxes" class="card-val">0</span></div>
-            <div class="grid-card"><b>Fridge Bags</b><span id="cardFridge" class="card-val">0</span></div>
-            <div class="grid-card"><b>Standard Bags</b><span id="cardBags" class="card-val">0</span></div>
+            <div class="grid-card"><b>Total Bags</b><span id="cardBags" class="card-val">0</span></div>
+            <div class="grid-card"><b>Total F.Bags</b><span id="cardFridge" class="card-val">0</span></div>
         </div>
 
         <table class="data-table">
@@ -101,8 +101,9 @@
                     <th style="width: 8%;">CRATES</th>
                     <th style="width: 8%;">BUNDLES</th>
                     <th style="width: 8%;">BOXES</th>
-                    <th style="width: 8%;">FRIDGE</th>
                     <th style="width: 8%;">BAGS</th>
+                    <th style="width: 8%;">FRIDGE</th>
+
                 </tr>
             </thead>
             <tbody id="tableBody"></tbody>
@@ -111,8 +112,8 @@
                 <td id="totCrates"></td>
                 <td id="totBundles"></td>
                 <td id="totBoxes"></td>
-                <td id="totFB"></td>
                 <td id="totBags"></td>
+                <td id="totFB"></td>
             </tr>
         </table>
 
@@ -180,8 +181,8 @@
                             <td>${r.C || 0}</td>
                             <td>${r.Bndl || 0}</td>
                             <td>${r.Bx || 0}</td>
-                            <td>${r.F || 0}</td>
                             <td>${r.Bg || 0}</td>
+                            <td>${r.F || 0}</td>
                         </tr>`;
                 });
             }
@@ -194,7 +195,7 @@
             document.getElementById('cardBags').innerText = data.TBg || "0";
 
             document.getElementById('totCrates').innerText = totalCratesCalculated > 0 ? totalCratesCalculated : "";
-            document.getElementById('totBundles').innerText = data.TBndl || "";
+            document.getElementById('totBundles').innerText = data.TBn || "";
             document.getElementById('totBoxes').innerText = data.TBx || "";
             document.getElementById('totFB').innerText = data.TF || "";
             document.getElementById('totBags').innerText = data.TBg || "";
@@ -221,7 +222,6 @@
             }
 
         } catch (e) {
-            // 🌟 NEW: Instead of a white screen, display the exact error message!
             document.getElementById('mainContent').style.display = "none";
             document.getElementById('footerText').style.display = "none";
             document.getElementById('barcodesSection').style.display = "none";
