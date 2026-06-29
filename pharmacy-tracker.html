@@ -179,7 +179,7 @@
                             <td class="multi-line">${safeTR}</td>
                             <td>${rowPharmacy}</td>
                             <td>${r.C || 0}</td>
-                            <td>${r.Bndl || 0}</td>
+                            <td>${r.Bn || 0}</td>
                             <td>${r.Bx || 0}</td>
                             <td>${r.Bg || 0}</td>
                             <td>${r.F || 0}</td>
@@ -189,7 +189,7 @@
             document.getElementById('tableBody').innerHTML = rowsHtml;
 
             document.getElementById('cardCrates').innerText = totalCratesCalculated;
-            document.getElementById('cardBundles').innerText = data.TBndl || "0";
+            document.getElementById('cardBundles').innerText = data.TBn || "0";
             document.getElementById('cardBoxes').innerText = data.TBx || "0";
             document.getElementById('cardFridge').innerText = data.TF || "0";
             document.getElementById('cardBags').innerText = data.TBg || "0";
