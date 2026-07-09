@@ -77,31 +77,57 @@
         </table>
     </div>
 
-    <script>
-       // Example of reading the data in your HTML file:
-const urlParams = new URLSearchParams(window.location.search);
-const encodedData = urlParams.get('data');
+<script>
+    document.getElementById('genDate').innerText = new Date().toLocaleString();
 
-if (encodedData) {
-    const deliveryData = JSON.parse(decodeURIComponent(encodedData));
-    
-    // Fill the header info
-    document.getElementById('pharmacyName').innerText = deliveryData.Pharmacy;
-    document.getElementById('containerCount').innerText = deliveryData.TotalContainers;
-    document.getElementById('deliveryStatus').innerText = deliveryData.DeliveryStatus;
-    
-    // Loop through the Rows table to build the list
-    const tbody = document.getElementById('detailsTable').querySelector('tbody');
-    deliveryData.Rows.forEach(item => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${item.TRNumber || "-"}</td>
-            <td>${item.ContainerID || "-"}</td>
-            <td>${item.Notes || "-"}</td>
-        `;
-        tbody.appendChild(tr);
-    });
-}
-    </script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const encodedData = urlParams.get('data');
+
+    if (encodedData) {
+        try {
+            // 1. Unpack the minified JSON
+            const data = JSON.parse(decodeURIComponent(encodedData));
+
+            // 2. Map the 1-letter keys to your HTML elements
+            document.getElementById('pharmacyName').innerText = data.P || "Unknown";
+            document.getElementById('containerCount').innerText = data.C || "0";
+            
+            // Handle Status
+            const statusBadge = document.getElementById('deliveryStatus');
+            statusBadge.innerText = data.S || "Pending";
+            if ((data.S || "").toLowerCase().includes("delivered")) {
+                statusBadge.className = "status-badge status-delivered";
+            }
+
+            // 🌟 Populate New Fields (You will need to add these IDs to your HTML layout!)
+            // Example: <span id="driverName"></span>
+            if(document.getElementById('driverName')) document.getElementById('driverName').innerText = data.Dr || "N/A";
+            if(document.getElementById('receiverName')) document.getElementById('receiverName').innerText = data.RN || "N/A";
+            if(document.getElementById('receiverID')) document.getElementById('receiverID').innerText = data.RI || "N/A";
+            if(document.getElementById('locationGPS')) document.getElementById('locationGPS').innerText = (data.Lat && data.Lon) ? `${data.Lat}, ${data.Lon}` : "N/A";
+
+            // 3. UNPACK THE TR STRING ("TR1|Cont1|-^TR2|Cont2|-")
+            const tbody = document.getElementById('detailsTable').querySelector('tbody');
+            if (data.R) {
+                // Split the string by ^ to get the rows
+                const rowsArray = data.R.split('^'); 
+                
+                rowsArray.forEach(rowString => {
+                    // Split the row by | to get the columns
+                    const cols = rowString.split('|'); 
+                    if (cols.length >= 2) {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${cols[0]}</td> <td>${cols[1]}</td> <td>${cols[2] || "-"}</td> `;
+                        tbody.appendChild(tr);
+                    }
+                });
+            }
+        } catch (error) {
+            console.error("Error parsing data:", error);
+            document.getElementById('pharmacyName').innerText = "Data Error.";
+        }
+    }
+</script>
 </body>
 </html>
