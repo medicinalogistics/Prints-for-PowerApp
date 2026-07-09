@@ -62,6 +62,18 @@
                 <span id="trackingRef">Loading...</span>
             </div>
         </div>
+        <table id="detailsTable">
+    <thead>
+        <tr>
+            <th>TR Number</th>
+            <th>Voucher Details</th>
+            <th>Container ID</th>
+            <th>Tracker Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        </tbody>
+</table>
 
         <h3>Delivery Details</h3>
         <table id="detailsTable">
@@ -106,23 +118,28 @@
             if(document.getElementById('receiverID')) document.getElementById('receiverID').innerText = data.RI || "N/A";
             if(document.getElementById('locationGPS')) document.getElementById('locationGPS').innerText = (data.Lat && data.Lon) ? `${data.Lat}, ${data.Lon}` : "N/A";
 
-            // 3. UNPACK THE TR STRING ("TR1|Cont1|-^TR2|Cont2|-")
-            const tbody = document.getElementById('detailsTable').querySelector('tbody');
-            if (data.R) {
-                // Split the string by ^ to get the rows
-                const rowsArray = data.R.split('^'); 
-                
-                rowsArray.forEach(rowString => {
-                    // Split the row by | to get the columns
-                    const cols = rowString.split('|'); 
-                    if (cols.length >= 2) {
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td>${cols[0]}</td> <td>${cols[1]}</td> <td>${cols[2] || "-"}</td> `;
-                        tbody.appendChild(tr);
-                    }
-                });
-            }
+            // 3. UNPACK THE TR STRING ("TR1|Vouch1|Cont1|Status1^TR2|Vouch2|Cont2|Status2")
+const tbody = document.getElementById('detailsTable').querySelector('tbody');
+if (data.R) {
+    const rowsArray = data.R.split('^'); 
+    
+    rowsArray.forEach(rowString => {
+        const cols = rowString.split('|'); 
+        
+        // Ensure we have at least 4 pieces of data (TR, Voucher, Container, Status)
+        if (cols.length >= 4) {
+            const tr = document.createElement('tr');
+            
+            // Optional: Make the status color dynamic
+            let statusClass = "status-pending";
+            if (cols[3].toLowerCase().includes("delivered")) statusClass = "status-delivered";
+
+            tr.innerHTML = `
+                <td><strong>${cols[0]}</strong></td> <td>${cols[1]}</td>                  <td>${cols[2]}</td>                  <td><span class="status-badge ${statusClass}">${cols[3]}</span></td> `;
+            tbody.appendChild(tr);
+        }
+    });
+}
         } catch (error) {
             console.error("Error parsing data:", error);
             document.getElementById('pharmacyName').innerText = "Data Error.";
