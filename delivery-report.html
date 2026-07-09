@@ -115,27 +115,46 @@
             if(document.getElementById('receiverID')) document.getElementById('receiverID').innerText = data.RI || "N/A";
             if(document.getElementById('locationGPS')) document.getElementById('locationGPS').innerText = (data.Lat && data.Lon) ? `${data.Lat}, ${data.Lon}` : "N/A";
 
-            // 3. UNPACK THE TR STRING ("TR1|Status1^TR2|Status2")
+            // 3. UNPACK THE TR STRING, SPLIT COMMAS, AND REMOVE DUPLICATES
             const tbody = document.getElementById('detailsTable').querySelector('tbody');
             if (data.R) {
                 const rowsArray = data.R.split('^'); 
                 
+                // 🌟 MAGIC: This Set will remember every TR we print so we never print it twice!
+                const seenTRs = new Set(); 
+                
                 rowsArray.forEach(rowString => {
                     const cols = rowString.split('|'); 
                     
-                    // 🌟 FIXED: We now only expect 2 pieces of data! TR (0) and Status (1)
                     if (cols.length >= 2) {
-                        const tr = document.createElement('tr');
+                        const rawTRString = cols[0]; // This might be "TR123, TR456"
+                        const statusText = cols[1];
                         
                         let statusClass = "status-pending";
-                        // Look at cols[1] for the status instead of cols[3]
-                        if (cols[1].toLowerCase().includes("delivered")) statusClass = "status-delivered";
+                        if (statusText.toLowerCase().includes("delivered")) statusClass = "status-delivered";
 
-                        tr.innerHTML = `
-                            <td><strong>${cols[0]}</strong></td>
-                            <td><span class="status-badge ${statusClass}">${cols[1]}</span></td> 
-                        `;
-                        tbody.appendChild(tr);
+                        // 🌟 MAGIC: Split the TR string by commas in case there are multiple
+                        const individualTRs = rawTRString.split(',');
+
+                        individualTRs.forEach(singleTR => {
+                            // Remove any extra spaces from the TR number
+                            const cleanTR = singleTR.trim(); 
+
+                            // 🚨 CHECK: If the TR is not empty, not "-", AND we haven't seen it yet...
+                            if (cleanTR !== "" && cleanTR !== "-" && !seenTRs.has(cleanTR)) {
+                                
+                                // Add it to our memory so we don't print it again (Removes Duplicates!)
+                                seenTRs.add(cleanTR); 
+
+                                // Build the row
+                                const tr = document.createElement('tr');
+                                tr.innerHTML = `
+                                    <td><strong>${cleanTR}</strong></td>
+                                    <td><span class="status-badge ${statusClass}">${statusText}</span></td> 
+                                `;
+                                tbody.appendChild(tr);
+                            }
+                        });
                     }
                 });
             }
