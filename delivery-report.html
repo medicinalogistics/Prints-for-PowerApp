@@ -23,7 +23,7 @@
         @media print {
             body { background: white; }
             .report-container { box-shadow: none; padding: 0; }
-            button { display: none; } /* Hide print button when printing */
+            button { display: none; }
         }
         .print-btn { background: #0369A1; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; float: right; font-weight: bold; }
         .print-btn:hover { background: #0284C7; }
@@ -58,30 +58,25 @@
                 <span id="containerCount">0</span>
             </div>
             <div class="summary-box">
-                <strong>Tracking Reference</strong>
-                <span id="trackingRef">Loading...</span>
+                <strong>Driver Name</strong>
+                <span id="driverName">Loading...</span>
+            </div>
+            <div class="summary-box">
+                <strong>Receiver Details</strong>
+                <span id="receiverName">Loading...</span> <span style="font-size: 14px; color: #555;">(ID: <span id="receiverID"></span>)</span>
+            </div>
+            <div class="summary-box">
+                <strong>GPS Location</strong>
+                <span id="locationGPS" style="font-size: 14px;">Loading...</span>
             </div>
         </div>
-        <table id="detailsTable">
-    <thead>
-        <tr>
-            <th>TR Number</th>
-            <th>Voucher Details</th>
-            <th>Container ID</th>
-            <th>Tracker Status</th>
-        </tr>
-    </thead>
-    <tbody>
-        </tbody>
-</table>
 
         <h3>Delivery Details</h3>
         <table id="detailsTable">
             <thead>
                 <tr>
-                    <th>TR Number / Detail</th>
-                    <th>Container ID</th>
-                    <th>Notes</th>
+                    <th>TR Number</th>
+                    <th>Tracker Status</th>
                 </tr>
             </thead>
             <tbody>
@@ -100,9 +95,12 @@
             // 1. Unpack the minified JSON
             const data = JSON.parse(decodeURIComponent(encodedData));
 
-            // 2. Map the 1-letter keys to your HTML elements
+            // 2. Map data to HTML
             document.getElementById('pharmacyName').innerText = data.P || "Unknown";
             document.getElementById('containerCount').innerText = data.C || "0";
+            
+            // 🌟 FIXED: Delivery Time Mapping Added
+            document.getElementById('deliveryTime').innerText = data.D || "N/A";
             
             // Handle Status
             const statusBadge = document.getElementById('deliveryStatus');
@@ -111,35 +109,36 @@
                 statusBadge.className = "status-badge status-delivered";
             }
 
-            // 🌟 Populate New Fields (You will need to add these IDs to your HTML layout!)
-            // Example: <span id="driverName"></span>
+            // Populate the new Driver/Receiver/GPS elements
             if(document.getElementById('driverName')) document.getElementById('driverName').innerText = data.Dr || "N/A";
             if(document.getElementById('receiverName')) document.getElementById('receiverName').innerText = data.RN || "N/A";
             if(document.getElementById('receiverID')) document.getElementById('receiverID').innerText = data.RI || "N/A";
             if(document.getElementById('locationGPS')) document.getElementById('locationGPS').innerText = (data.Lat && data.Lon) ? `${data.Lat}, ${data.Lon}` : "N/A";
 
             // 3. UNPACK THE TR STRING ("TR1|Vouch1|Cont1|Status1^TR2|Vouch2|Cont2|Status2")
-const tbody = document.getElementById('detailsTable').querySelector('tbody');
-if (data.R) {
-    const rowsArray = data.R.split('^'); 
-    
-    rowsArray.forEach(rowString => {
-        const cols = rowString.split('|'); 
-        
-        // Ensure we have at least 4 pieces of data (TR, Voucher, Container, Status)
-        if (cols.length >= 4) {
-            const tr = document.createElement('tr');
-            
-            // Optional: Make the status color dynamic
-            let statusClass = "status-pending";
-            if (cols[3].toLowerCase().includes("delivered")) statusClass = "status-delivered";
+            const tbody = document.getElementById('detailsTable').querySelector('tbody');
+            if (data.R) {
+                const rowsArray = data.R.split('^'); 
+                
+                rowsArray.forEach(rowString => {
+                    const cols = rowString.split('|'); 
+                    
+                    // Power Apps sends 4 columns: TR (0), Voucher (1), Container (2), Status (3)
+                    // We only display TR (0) and Status (3)
+                    if (cols.length >= 4) {
+                        const tr = document.createElement('tr');
+                        
+                        let statusClass = "status-pending";
+                        if (cols[3].toLowerCase().includes("delivered")) statusClass = "status-delivered";
 
-            tr.innerHTML = `
-                <td><strong>${cols[0]}</strong></td> <td>${cols[1]}</td>                  <td>${cols[2]}</td>                  <td><span class="status-badge ${statusClass}">${cols[3]}</span></td> `;
-            tbody.appendChild(tr);
-        }
-    });
-}
+                        tr.innerHTML = `
+                            <td><strong>${cols[0]}</strong></td>
+                            <td><span class="status-badge ${statusClass}">${cols[3]}</span></td> 
+                        `;
+                        tbody.appendChild(tr);
+                    }
+                });
+            }
         } catch (error) {
             console.error("Error parsing data:", error);
             document.getElementById('pharmacyName').innerText = "Data Error.";
