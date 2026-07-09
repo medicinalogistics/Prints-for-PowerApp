@@ -78,58 +78,30 @@
     </div>
 
     <script>
-        // 1. Get the current date for the header
-        document.getElementById('genDate').innerText = new Date().toLocaleString();
+       // Example of reading the data in your HTML file:
+const urlParams = new URLSearchParams(window.location.search);
+const encodedData = urlParams.get('data');
 
-        // 2. Extract the encoded data from the URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const encodedData = urlParams.get('data');
-
-        if (encodedData) {
-            try {
-                // Decode and parse the JSON data sent from Power Apps
-                const deliveryData = JSON.parse(decodeURIComponent(encodedData));
-                
-                // Since Power Apps sends an array (even if it's one item), we take the first item [0]
-                const record = Array.isArray(deliveryData) ? deliveryData[0] : deliveryData;
-
-                // 3. Populate Summary Fields (Adjust the keys to match your Power Apps column names!)
-                document.getElementById('pharmacyName').innerText = record.ShippingPharmacyName || "Unknown Pharmacy";
-                document.getElementById('deliveryTime').innerText = record.DeliveryTime || "N/A";
-                document.getElementById('containerCount').innerText = record.TotalContainers || "0";
-                document.getElementById('trackingRef').innerText = record.TRNumber || record.DeliveryID || "N/A";
-
-                // Handle Status Color
-                const statusBadge = document.getElementById('deliveryStatus');
-                const statusText = record.TrackerStatus || record.Status || "Pending";
-                statusBadge.innerText = statusText;
-                if (statusText.toLowerCase().includes("delivered")) {
-                    statusBadge.className = "status-badge status-delivered";
-                }
-
-                // 4. Populate Table (If you send multiple rows of containers)
-                const tbody = document.getElementById('detailsTable').querySelector('tbody');
-                
-                // If deliveryData is an array of multiple items (e.g., multiple containers for one pharmacy)
-                if (Array.isArray(deliveryData)) {
-                    deliveryData.forEach(item => {
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td>${item.TRNumber || "N/A"}</td>
-                            <td>${item.ContainerID || "N/A"}</td>
-                            <td>${item.Notes || "-"}</td>
-                        `;
-                        tbody.appendChild(tr);
-                    });
-                }
-
-            } catch (error) {
-                console.error("Error parsing data:", error);
-                document.getElementById('pharmacyName').innerText = "Error loading data.";
-            }
-        } else {
-            document.getElementById('pharmacyName').innerText = "No data provided.";
-        }
+if (encodedData) {
+    const deliveryData = JSON.parse(decodeURIComponent(encodedData));
+    
+    // Fill the header info
+    document.getElementById('pharmacyName').innerText = deliveryData.Pharmacy;
+    document.getElementById('containerCount').innerText = deliveryData.TotalContainers;
+    document.getElementById('deliveryStatus').innerText = deliveryData.DeliveryStatus;
+    
+    // Loop through the Rows table to build the list
+    const tbody = document.getElementById('detailsTable').querySelector('tbody');
+    deliveryData.Rows.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${item.TRNumber || "-"}</td>
+            <td>${item.ContainerID || "-"}</td>
+            <td>${item.Notes || "-"}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
     </script>
 </body>
 </html>
