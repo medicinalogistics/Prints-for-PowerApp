@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delivery Report</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; color: #333; background: #f9f9f9; }
+        .report-container { max-width: 800px; margin: 0 auto; background: #fff; padding: 40px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .header { display: flex; justify-content: space-between; border-bottom: 2px solid #0369A1; padding-bottom: 20px; margin-bottom: 20px; }
+        .header h1 { margin: 0; color: #0369A1; font-size: 28px; }
+        .header p { margin: 5px 0 0 0; color: #666; }
+        .summary-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 30px; }
+        .summary-box { background: #F0F9FF; padding: 15px; border-left: 5px solid #3B82F6; border-radius: 4px; }
+        .summary-box strong { display: block; font-size: 12px; color: #075985; text-transform: uppercase; margin-bottom: 5px; }
+        .summary-box span { font-size: 16px; font-weight: bold; color: #111; }
+        .status-badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 14px; font-weight: bold; color: white; }
+        .status-delivered { background-color: #16A34A; }
+        .status-pending { background-color: #D97706; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #f1f5f9; color: #334155; font-weight: 600; }
+        @media print {
+            body { background: white; }
+            .report-container { box-shadow: none; padding: 0; }
+            button { display: none; } /* Hide print button when printing */
+        }
+        .print-btn { background: #0369A1; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; float: right; font-weight: bold; }
+        .print-btn:hover { background: #0284C7; }
+    </style>
+</head>
+<body>
+
+    <div class="report-container">
+        <button class="print-btn" onclick="window.print()">🖨️ Print Report</button>
+        
+        <div class="header">
+            <div>
+                <h1>Delivery Manifest Report</h1>
+                <p>Generated: <span id="genDate"></span></p>
+            </div>
+            <div style="text-align: right;">
+                <h2 style="margin: 0; color: #111;" id="pharmacyName">Loading...</h2>
+            </div>
+        </div>
+
+        <div class="summary-grid">
+            <div class="summary-box">
+                <strong>Delivery Status</strong>
+                <span id="deliveryStatus" class="status-badge status-pending">Loading...</span>
+            </div>
+            <div class="summary-box">
+                <strong>Delivery Time</strong>
+                <span id="deliveryTime">Loading...</span>
+            </div>
+            <div class="summary-box">
+                <strong>Total Containers</strong>
+                <span id="containerCount">0</span>
+            </div>
+            <div class="summary-box">
+                <strong>Tracking Reference</strong>
+                <span id="trackingRef">Loading...</span>
+            </div>
+        </div>
+
+        <h3>Delivery Details</h3>
+        <table id="detailsTable">
+            <thead>
+                <tr>
+                    <th>TR Number / Detail</th>
+                    <th>Container ID</th>
+                    <th>Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                </tbody>
+        </table>
+    </div>
+
+    <script>
+        // 1. Get the current date for the header
+        document.getElementById('genDate').innerText = new Date().toLocaleString();
+
+        // 2. Extract the encoded data from the URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const encodedData = urlParams.get('data');
+
+        if (encodedData) {
+            try {
+                // Decode and parse the JSON data sent from Power Apps
+                const deliveryData = JSON.parse(decodeURIComponent(encodedData));
+                
+                // Since Power Apps sends an array (even if it's one item), we take the first item [0]
+                const record = Array.isArray(deliveryData) ? deliveryData[0] : deliveryData;
+
+                // 3. Populate Summary Fields (Adjust the keys to match your Power Apps column names!)
+                document.getElementById('pharmacyName').innerText = record.ShippingPharmacyName || "Unknown Pharmacy";
+                document.getElementById('deliveryTime').innerText = record.DeliveryTime || "N/A";
+                document.getElementById('containerCount').innerText = record.TotalContainers || "0";
+                document.getElementById('trackingRef').innerText = record.TRNumber || record.DeliveryID || "N/A";
+
+                // Handle Status Color
+                const statusBadge = document.getElementById('deliveryStatus');
+                const statusText = record.TrackerStatus || record.Status || "Pending";
+                statusBadge.innerText = statusText;
+                if (statusText.toLowerCase().includes("delivered")) {
+                    statusBadge.className = "status-badge status-delivered";
+                }
+
+                // 4. Populate Table (If you send multiple rows of containers)
+                const tbody = document.getElementById('detailsTable').querySelector('tbody');
+                
+                // If deliveryData is an array of multiple items (e.g., multiple containers for one pharmacy)
+                if (Array.isArray(deliveryData)) {
+                    deliveryData.forEach(item => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${item.TRNumber || "N/A"}</td>
+                            <td>${item.ContainerID || "N/A"}</td>
+                            <td>${item.Notes || "-"}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+
+            } catch (error) {
+                console.error("Error parsing data:", error);
+                document.getElementById('pharmacyName').innerText = "Error loading data.";
+            }
+        } else {
+            document.getElementById('pharmacyName').innerText = "No data provided.";
+        }
+    </script>
+</body>
+</html>
