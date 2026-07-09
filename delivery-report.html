@@ -36,7 +36,7 @@
         
         <div class="header">
             <div>
-                <h1>Delivery Manifest Report</h1>
+                <h1>Delivery Report</h1>
                 <p>Generated: <span id="genDate"></span></p>
             </div>
             <div style="text-align: right;">
@@ -115,7 +115,7 @@
             if(document.getElementById('receiverID')) document.getElementById('receiverID').innerText = data.RI || "N/A";
             if(document.getElementById('locationGPS')) document.getElementById('locationGPS').innerText = (data.Lat && data.Lon) ? `${data.Lat}, ${data.Lon}` : "N/A";
 
-            // 3. UNPACK THE TR STRING ("TR1|Vouch1|Cont1|Status1^TR2|Vouch2|Cont2|Status2")
+            // 3. UNPACK THE TR STRING ("TR1|Status1^TR2|Status2")
             const tbody = document.getElementById('detailsTable').querySelector('tbody');
             if (data.R) {
                 const rowsArray = data.R.split('^'); 
@@ -123,17 +123,17 @@
                 rowsArray.forEach(rowString => {
                     const cols = rowString.split('|'); 
                     
-                    // Power Apps sends 4 columns: TR (0), Voucher (1), Container (2), Status (3)
-                    // We only display TR (0) and Status (3)
-                    if (cols.length >= 4) {
+                    // 🌟 FIXED: We now only expect 2 pieces of data! TR (0) and Status (1)
+                    if (cols.length >= 2) {
                         const tr = document.createElement('tr');
                         
                         let statusClass = "status-pending";
-                        if (cols[3].toLowerCase().includes("delivered")) statusClass = "status-delivered";
+                        // Look at cols[1] for the status instead of cols[3]
+                        if (cols[1].toLowerCase().includes("delivered")) statusClass = "status-delivered";
 
                         tr.innerHTML = `
                             <td><strong>${cols[0]}</strong></td>
-                            <td><span class="status-badge ${statusClass}">${cols[3]}</span></td> 
+                            <td><span class="status-badge ${statusClass}">${cols[1]}</span></td> 
                         `;
                         tbody.appendChild(tr);
                     }
