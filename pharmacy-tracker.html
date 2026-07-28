@@ -173,6 +173,8 @@
                     let safeTR = r.TR ? String(r.TR).toUpperCase().trim() : "";
                     let rowPharmacy = r.RP || "";
 
+                    let journalText = r.Jnl ? String(r.Jnl).trim() : "";
+
                     rowsHtml += `
                         <tr>
                             <td>${index + 1}</td>
@@ -184,6 +186,17 @@
                             <td>${r.Bg || 0}</td>
                             <td>${r.F || 0}</td>
                         </tr>`;
+
+                    if (journalText !== "") {
+                        rowsHtml += `
+                        <tr style="background-color: #fbfbfb;">
+                            <td style="border-right: none;"></td>
+                            <td colspan="7" style="text-align: left; padding: 4px 8px; font-size: 9pt; color: #444; border-left: none;">
+                                <b>Journal/Notes:</b> <i>${journalText}</i>
+                            </td>
+                        </tr>`;
+                    }
+                    
                 });
             }
             document.getElementById('tableBody').innerHTML = rowsHtml;
