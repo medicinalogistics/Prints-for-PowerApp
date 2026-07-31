@@ -103,7 +103,6 @@
                     <th style="width: 8%;">BOXES</th>
                     <th style="width: 8%;">BAGS</th>
                     <th style="width: 8%;">FRIDGE</th>
-
                 </tr>
             </thead>
             <tbody id="tableBody"></tbody>
@@ -150,7 +149,6 @@
             const urlParams = new URLSearchParams(window.location.search);
             const rawData = urlParams.get('data');
             
-            // If there is no data in the URL, don't crash, just show the blank template
             if (!rawData) {
                 console.warn("No data found in URL.");
                 return;
@@ -168,12 +166,18 @@
             let rowsHtml = "";
             let totalCratesCalculated = data.TC || 0;
             
+            // 🌟 NEW: Create a variable outside the loop to hold the journal text
+            let finalJournalText = ""; 
+            
             if (data.Rows && Array.isArray(data.Rows)) {
                 data.Rows.forEach((r, index) => {
                     let safeTR = r.TR ? String(r.TR).toUpperCase().trim() : "";
                     let rowPharmacy = r.RP || "";
-
-                    let journalText = r.Jnl ? String(r.Jnl).trim() : "";
+                    
+                    // Capture the journal text if it exists (it will grab it from whichever row has it)
+                    if (r.Jnl && String(r.Jnl).trim() !== "") {
+                        finalJournalText = String(r.Jnl).trim();
+                    }
 
                     rowsHtml += `
                         <tr>
@@ -186,19 +190,20 @@
                             <td>${r.Bg || 0}</td>
                             <td>${r.F || 0}</td>
                         </tr>`;
-
-                    if (journalText !== "") {
-                        rowsHtml += `
-                        <tr style="background-color: #fbfbfb;">
-                            <td style="border-right: none;"></td>
-                            <td colspan="7" style="text-align: left; padding: 4px 8px; font-size: 9pt; color: #444; border-left: none;">
-                                <b>Journal/Notes:</b> <i>${journalText}</i>
-                            </td>
-                        </tr>`;
-                    }
-                    
                 });
+                
+                // 🌟 NEW: Add the Journal Row exactly ONCE, after the loop is finished!
+                if (finalJournalText !== "") {
+                    rowsHtml += `
+                    <tr style="background-color: #fbfbfb;">
+                        <td style="border-right: none;"></td>
+                        <td colspan="7" style="text-align: left; padding: 4px 8px; font-size: 9pt; color: #444; border-left: none;">
+                            <b>Journal/Notes:</b> <i>${finalJournalText}</i>
+                        </td>
+                    </tr>`;
+                }
             }
+            
             document.getElementById('tableBody').innerHTML = rowsHtml;
 
             document.getElementById('cardCrates').innerText = totalCratesCalculated;
