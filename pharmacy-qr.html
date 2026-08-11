@@ -85,7 +85,7 @@
                     div.className = 'qr-item';
                     
                     div.innerHTML = `
-                        <div class="header-store">${item.ShippingPharmacy || 'INTERNAL TRANSFER'}</div>
+                        <div class="header-store">${item.ShippingPharmacyName}</div>
                         <img src="${qrCodeURL}" alt="QR Code">
                         <div class="container-info">${item.ContainerInfo || ''}</div>
                     `;
