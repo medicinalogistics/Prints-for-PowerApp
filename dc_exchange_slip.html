@@ -23,7 +23,7 @@
             box-sizing: border-box;
         }
         
-        /* 🌟 NEW: Centered Header with Logos */
+        /* Header with Logos */
         .header {
             display: flex;
             justify-content: space-between;
@@ -33,7 +33,7 @@
             margin-bottom: 20px;
         }
         .header-logo {
-            width: 180px; /* Gives the logos a fixed space so they don't crush the title */
+            width: 150px; 
             display: flex;
         }
         .header-logo.left {
@@ -42,8 +42,9 @@
         .header-logo.right {
             justify-content: flex-end;
         }
+        /* 🌟 UPDATE 1: Logos made smaller and more subtle */
         .header-logo img {
-            max-height: 55px; /* Keeps the logos at a clean, printable size */
+            max-height: 35px; 
             max-width: 100%;
             object-fit: contain;
         }
@@ -51,22 +52,51 @@
             flex: 1;
             text-align: center;
             margin: 0;
-            font-size: 26px;
+            font-size: 24px;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
 
-        /* Information Grid */
+        /* 🌟 UPDATE 3: Top Section Layout (Info Grid + QR Code) */
+        .top-section {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
         .info-grid {
+            flex: 1;
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15px;
-            margin-bottom: 20px;
             background-color: #f9fafb;
             padding: 15px;
             border-radius: 6px;
             border: 1px solid #e5e7eb;
         }
+        .qr-box {
+            width: 110px;
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+        }
+        .qr-box img {
+            width: 80px;
+            height: 80px;
+        }
+        .qr-label {
+            font-size: 9px;
+            color: #6b7280;
+            margin-top: 6px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
         .info-item span {
             display: block;
             font-size: 11px;
@@ -202,7 +232,6 @@
                 margin: 0; padding: 0; box-shadow: none; border: none; width: 100%;
             }
             .btn-print { display: none; }
-            /* Force background colors to print */
             .card { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
     </style>
@@ -225,22 +254,29 @@
             </div>
         </div>
 
-        <div class="info-grid">
-            <div class="info-item">
-                <span>Exchange ID</span>
-                <strong id="valExchangeID">Loading...</strong>
+        <div class="top-section">
+            <div class="info-grid">
+                <div class="info-item">
+                    <span>Exchange ID</span>
+                    <strong id="valExchangeID">Loading...</strong>
+                </div>
+                <div class="info-item">
+                    <span>Generated Date</span>
+                    <strong id="valDate">Loading...</strong>
+                </div>
+                <div class="info-item">
+                    <span>Dispatch Location</span>
+                    <strong id="valFrom">Loading...</strong>
+                </div>
+                <div class="info-item">
+                    <span>Receiving Hub</span>
+                    <strong id="valTo">Loading...</strong>
+                </div>
             </div>
-            <div class="info-item">
-                <span>Generated Date</span>
-                <strong id="valDate">Loading...</strong>
-            </div>
-            <div class="info-item">
-                <span>Dispatch Location</span>
-                <strong id="valFrom">Loading...</strong>
-            </div>
-            <div class="info-item">
-                <span>Receiving Hub</span>
-                <strong id="valTo">Loading...</strong>
+
+            <div class="qr-box">
+                <img id="qrCodeImg" src="" alt="QR Code" style="display: none;">
+                <div class="qr-label">Exchange ID</div>
             </div>
         </div>
 
@@ -309,30 +345,44 @@
     </div>
 
     <script>
-        // 1. Extract the Data from the URL
         const urlParams = new URLSearchParams(window.location.search);
         const encodedData = urlParams.get('data');
 
         if (encodedData) {
             try {
-                // 2. Decode and Parse the JSON
                 const decodedData = decodeURIComponent(encodedData);
                 const slipData = JSON.parse(decodedData);
 
-                // 3. Populate Header Info
-                document.getElementById('valExchangeID').innerText = slipData.ExchangeID || "N/A";
+                // 1. Setup Exchange ID & Auto-Generate QR Code
+                const exchangeId = slipData.ExchangeID || "N/A";
+                document.getElementById('valExchangeID').innerText = exchangeId;
+                
+                if (exchangeId !== "N/A") {
+                    const qrImg = document.getElementById('qrCodeImg');
+                    // Uses Google's free API to instantly draw the QR code for this specific Exchange ID!
+                    qrImg.src = `https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=${encodeURIComponent(exchangeId)}`;
+                    qrImg.style.display = "block";
+                }
+
+                // 2. Setup Dates & Locations
                 document.getElementById('valDate').innerText = slipData.Date || "N/A";
                 document.getElementById('valFrom').innerText = slipData.FromLocation || "N/A";
-                document.getElementById('valTo').innerText = slipData.ToLocation || "N/A";
+                
+                // 🌟 UPDATE 2: Logic for Dubai Distribution Center renaming
+                let toLocation = slipData.ToLocation || "N/A";
+                if (toLocation === "Dubai Region") {
+                    toLocation = "Dubai Distribution Center";
+                }
+                document.getElementById('valTo').innerText = toLocation;
 
-                // 4. Populate the Top Summary Cards
+                // 3. Populate Summary Cards
                 document.getElementById('cardCrates').innerText = slipData.TC || 0;
                 document.getElementById('cardBundles').innerText = slipData.TBndl || 0;
                 document.getElementById('cardBoxes').innerText = slipData.TBx || 0;
                 document.getElementById('cardBags').innerText = slipData.TBg || 0;
                 document.getElementById('cardFridge').innerText = slipData.TF || 0;
 
-                // 5. Populate the Table Rows
+                // 4. Populate Table Rows
                 const tableBody = document.getElementById('tableBody');
                 if (slipData.Rows && slipData.Rows.length > 0) {
                     slipData.Rows.forEach(row => {
@@ -352,7 +402,7 @@
                     tableBody.innerHTML = `<tr><td colspan="7">No packages found for this exchange.</td></tr>`;
                 }
 
-                // 6. Populate Table Bottom Totals
+                // 5. Populate Table Bottom Totals
                 document.getElementById('totCrates').innerText = slipData.TC || 0;
                 document.getElementById('totBundles').innerText = slipData.TBndl || 0;
                 document.getElementById('totBoxes').innerText = slipData.TBx || 0;
