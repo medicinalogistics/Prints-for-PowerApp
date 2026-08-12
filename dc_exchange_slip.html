@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DC Exchange Slip</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+
     <style>
         /* A4 Print Setup and General Styling */
         body {
@@ -42,7 +45,6 @@
         .header-logo.right {
             justify-content: flex-end;
         }
-        /* 🌟 UPDATE 1: Logos made smaller and more subtle */
         .header-logo img {
             max-height: 35px; 
             max-width: 100%;
@@ -57,7 +59,7 @@
             letter-spacing: 1px;
         }
 
-        /* 🌟 UPDATE 3: Top Section Layout (Info Grid + QR Code) */
+        /* Top Section Layout (Info Grid + QR Code) */
         .top-section {
             display: flex;
             gap: 15px;
@@ -83,10 +85,6 @@
             align-items: center;
             justify-content: center;
             padding: 10px;
-        }
-        .qr-box img {
-            width: 80px;
-            height: 80px;
         }
         .qr-label {
             font-size: 9px;
@@ -275,7 +273,7 @@
             </div>
 
             <div class="qr-box">
-                <img id="qrCodeImg" src="" alt="QR Code" style="display: none;">
+                <canvas id="qrCodeCanvas"></canvas>
                 <div class="qr-label">Exchange ID</div>
             </div>
         </div>
@@ -316,7 +314,7 @@
                 </tr>
             </thead>
             <tbody id="tableBody">
-                </tbody>
+            </tbody>
             <tfoot>
                 <tr class="totals-row">
                     <td colspan="2" style="text-align: right; padding-right: 15px;">GRAND TOTALS:</td>
@@ -353,22 +351,25 @@
                 const decodedData = decodeURIComponent(encodedData);
                 const slipData = JSON.parse(decodedData);
 
-                // 1. Setup Exchange ID & Auto-Generate QR Code
+                // 1. Setup Exchange ID & Generate QR Code safely
                 const exchangeId = slipData.ExchangeID || "N/A";
                 document.getElementById('valExchangeID').innerText = exchangeId;
                 
+                // 🌟 NEW: This draws the QR Code directly using your computer's browser, bypassing any firewalls!
                 if (exchangeId !== "N/A") {
-                    const qrImg = document.getElementById('qrCodeImg');
-                    // Uses Google's free API to instantly draw the QR code for this specific Exchange ID!
-                    qrImg.src = `https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=${encodeURIComponent(exchangeId)}`;
-                    qrImg.style.display = "block";
+                    new QRious({
+                        element: document.getElementById('qrCodeCanvas'),
+                        value: exchangeId,
+                        size: 85,          // Adjusts the physical size
+                        padding: null,     // Removes white space around the edge
+                        level: 'M'         // Error correction level
+                    });
                 }
 
                 // 2. Setup Dates & Locations
                 document.getElementById('valDate').innerText = slipData.Date || "N/A";
                 document.getElementById('valFrom').innerText = slipData.FromLocation || "N/A";
                 
-                // 🌟 UPDATE 2: Logic for Dubai Distribution Center renaming
                 let toLocation = slipData.ToLocation || "N/A";
                 if (toLocation === "Dubai Region") {
                     toLocation = "Dubai Distribution Center";
