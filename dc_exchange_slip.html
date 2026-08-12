@@ -49,7 +49,7 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15px;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             background-color: #f9fafb;
             padding: 15px;
             border-radius: 6px;
@@ -66,6 +66,53 @@
             font-size: 16px;
             color: #111827;
         }
+
+        /* 🌟 NEW: Summary Cards Styling */
+        .summary-cards {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            justify-content: space-between;
+        }
+        .card {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #e5e7eb;
+        }
+        .card-title {
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .card-value {
+            font-size: 22px;
+            font-weight: bold;
+            margin-top: 4px;
+        }
+
+        /* Card Color Themes (Prints cleanly) */
+        .card-crates { background: #FFFBEB; border-color: #FDE68A; }
+        .card-crates .card-title { color: #92400E; }
+        .card-crates .card-value { color: #B45309; }
+
+        .card-bundles { background: #F3E8FF; border-color: #D8B4FE; }
+        .card-bundles .card-title { color: #5B21B6; }
+        .card-bundles .card-value { color: #6D28D9; }
+
+        .card-boxes { background: #F9FAFB; border-color: #E5E7EB; }
+        .card-boxes .card-title { color: #374151; }
+        .card-boxes .card-value { color: #111827; }
+
+        .card-bags { background: #F9FAFB; border-color: #E5E7EB; }
+        .card-bags .card-title { color: #374151; }
+        .card-bags .card-value { color: #111827; }
+
+        .card-fridge { background: #EFF6FF; border-color: #BFDBFE; }
+        .card-fridge .card-title { color: #1E40AF; }
+        .card-fridge .card-value { color: #1D4ED8; }
 
         /* Table Styling */
         table {
@@ -143,6 +190,8 @@
                 margin: 0; padding: 0; box-shadow: none; border: none; width: 100%;
             }
             .btn-print { display: none; }
+            /* Force background colors to print */
+            .card { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
     </style>
 </head>
@@ -176,6 +225,29 @@
             <div class="info-item">
                 <span>Receiving Hub</span>
                 <strong id="valTo">Loading...</strong>
+            </div>
+        </div>
+
+        <div class="summary-cards">
+            <div class="card card-crates">
+                <div class="card-title">Crates</div>
+                <div class="card-value" id="cardCrates">0</div>
+            </div>
+            <div class="card card-bundles">
+                <div class="card-title">Bundles</div>
+                <div class="card-value" id="cardBundles">0</div>
+            </div>
+            <div class="card card-boxes">
+                <div class="card-title">Boxes</div>
+                <div class="card-value" id="cardBoxes">0</div>
+            </div>
+            <div class="card card-bags">
+                <div class="card-title">Bags</div>
+                <div class="card-value" id="cardBags">0</div>
+            </div>
+            <div class="card card-fridge">
+                <div class="card-title">Fridge</div>
+                <div class="card-value" id="cardFridge">0</div>
             </div>
         </div>
 
@@ -237,14 +309,22 @@
                 document.getElementById('valFrom').innerText = slipData.FromLocation || "N/A";
                 document.getElementById('valTo').innerText = slipData.ToLocation || "N/A";
 
-                // 4. Populate the Table Rows
+                // 🌟 NEW: 4. Populate the Top Summary Cards
+                document.getElementById('cardCrates').innerText = slipData.TC || 0;
+                document.getElementById('cardBundles').innerText = slipData.TBndl || 0;
+                document.getElementById('cardBoxes').innerText = slipData.TBx || 0;
+                document.getElementById('cardBags').innerText = slipData.TBg || 0;
+                document.getElementById('cardFridge').innerText = slipData.TF || 0;
+
+                // 5. Populate the Table Rows
                 const tableBody = document.getElementById('tableBody');
                 if (slipData.Rows && slipData.Rows.length > 0) {
                     slipData.Rows.forEach(row => {
                         const tr = document.createElement('tr');
                         tr.innerHTML = `
                             <td class="text-left" style="font-family: monospace; font-weight: bold;">${row.PackageID}</td>
-                            <td class="text-left" style="font-size: 11px;">${row.TR}</td> <td>${row.C > 0 ? row.C : '-'}</td>
+                            <td class="text-left" style="font-size: 11px;">${row.TR}</td>
+                            <td>${row.C > 0 ? row.C : '-'}</td>
                             <td>${row.Bndl > 0 ? row.Bndl : '-'}</td>
                             <td>${row.Bx > 0 ? row.Bx : '-'}</td>
                             <td>${row.Bg > 0 ? row.Bg : '-'}</td>
@@ -256,7 +336,7 @@
                     tableBody.innerHTML = `<tr><td colspan="7">No packages found for this exchange.</td></tr>`;
                 }
 
-                // 5. Populate Grand Totals
+                // 6. Populate Table Bottom Totals
                 document.getElementById('totCrates').innerText = slipData.TC || 0;
                 document.getElementById('totBundles').innerText = slipData.TBndl || 0;
                 document.getElementById('totBoxes').innerText = slipData.TBx || 0;
