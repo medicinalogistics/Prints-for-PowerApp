@@ -23,7 +23,7 @@
             box-sizing: border-box;
         }
         
-        /* Header Section */
+        /* 🌟 NEW: Centered Header with Logos */
         .header {
             display: flex;
             justify-content: space-between;
@@ -32,16 +32,28 @@
             padding-bottom: 15px;
             margin-bottom: 20px;
         }
+        .header-logo {
+            width: 180px; /* Gives the logos a fixed space so they don't crush the title */
+            display: flex;
+        }
+        .header-logo.left {
+            justify-content: flex-start;
+        }
+        .header-logo.right {
+            justify-content: flex-end;
+        }
+        .header-logo img {
+            max-height: 55px; /* Keeps the logos at a clean, printable size */
+            max-width: 100%;
+            object-fit: contain;
+        }
         .header h1 {
+            flex: 1;
+            text-align: center;
             margin: 0;
-            font-size: 24px;
+            font-size: 26px;
             text-transform: uppercase;
             letter-spacing: 1px;
-        }
-        .header-logo {
-            font-size: 18px;
-            font-weight: bold;
-            color: #4b5563;
         }
 
         /* Information Grid */
@@ -67,7 +79,7 @@
             color: #111827;
         }
 
-        /* 🌟 NEW: Summary Cards Styling */
+        /* Summary Cards Styling */
         .summary-cards {
             display: flex;
             gap: 10px;
@@ -202,11 +214,15 @@
     <div class="a4-container">
         
         <div class="header">
-            <div>
-                <h1>DC Exchange Slip</h1>
-                <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Warehouse Logistics Transfer</div>
+            <div class="header-logo left">
+                <img src="MedicinaLogo.png" alt="Medicina Logo">
             </div>
-            <div class="header-logo">Medicinal Logistics</div>
+            
+            <h1>DC Exchange Slip</h1>
+            
+            <div class="header-logo right">
+                <img src="manara_phar.png" alt="Manara Pharmacy Logo">
+            </div>
         </div>
 
         <div class="info-grid">
@@ -309,7 +325,7 @@
                 document.getElementById('valFrom').innerText = slipData.FromLocation || "N/A";
                 document.getElementById('valTo').innerText = slipData.ToLocation || "N/A";
 
-                // 🌟 NEW: 4. Populate the Top Summary Cards
+                // 4. Populate the Top Summary Cards
                 document.getElementById('cardCrates').innerText = slipData.TC || 0;
                 document.getElementById('cardBundles').innerText = slipData.TBndl || 0;
                 document.getElementById('cardBoxes').innerText = slipData.TBx || 0;
