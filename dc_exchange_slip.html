@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DC Exchange Slip</title>
+    <style>
+        /* A4 Print Setup and General Styling */
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f3f4f6;
+            color: #111827;
+        }
+        .a4-container {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 20px auto;
+            background: white;
+            padding: 20mm;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+        }
+        
+        /* Header Section */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #1f2937;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .header-logo {
+            font-size: 18px;
+            font-weight: bold;
+            color: #4b5563;
+        }
+
+        /* Information Grid */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+            background-color: #f9fafb;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+        }
+        .info-item span {
+            display: block;
+            font-size: 11px;
+            color: #6b7280;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+        .info-item strong {
+            font-size: 16px;
+            color: #111827;
+        }
+
+        /* Table Styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+            font-size: 13px;
+        }
+        th, td {
+            border: 1px solid #d1d5db;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #f3f4f6;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 11px;
+            color: #374151;
+        }
+        td.text-left {
+            text-align: left;
+        }
+        
+        /* Table Totals Row */
+        .totals-row td {
+            background-color: #e5e7eb;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        /* Signature Section */
+        .signatures {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 50px;
+            padding-top: 20px;
+        }
+        .sig-box {
+            width: 45%;
+        }
+        .sig-line {
+            border-bottom: 1px solid #000;
+            margin-top: 40px;
+            margin-bottom: 10px;
+        }
+        .sig-label {
+            font-size: 12px;
+            font-weight: bold;
+            color: #374151;
+        }
+
+        /* Print Button */
+        .btn-print {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background-color: #2563eb;
+            color: white;
+            padding: 15px 25px;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .btn-print:hover {
+            background-color: #1d4ed8;
+        }
+
+        /* Print Specific CSS */
+        @media print {
+            body { background: white; }
+            .a4-container {
+                margin: 0; padding: 0; box-shadow: none; border: none; width: 100%;
+            }
+            .btn-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <button class="btn-print" onclick="window.print()">🖨️ Print Slip</button>
+
+    <div class="a4-container">
+        
+        <div class="header">
+            <div>
+                <h1>DC Exchange Slip</h1>
+                <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Warehouse Logistics Transfer</div>
+            </div>
+            <div class="header-logo">Medicinal Logistics</div>
+        </div>
+
+        <div class="info-grid">
+            <div class="info-item">
+                <span>Exchange ID</span>
+                <strong id="valExchangeID">Loading...</strong>
+            </div>
+            <div class="info-item">
+                <span>Generated Date</span>
+                <strong id="valDate">Loading...</strong>
+            </div>
+            <div class="info-item">
+                <span>Dispatch Location</span>
+                <strong id="valFrom">Loading...</strong>
+            </div>
+            <div class="info-item">
+                <span>Receiving Hub</span>
+                <strong id="valTo">Loading...</strong>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 25%;">Package ID</th>
+                    <th style="width: 35%;">TR Numbers</th>
+                    <th>Crates</th>
+                    <th>Bundles</th>
+                    <th>Boxes</th>
+                    <th>Bags</th>
+                    <th>Fridge</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                </tbody>
+            <tfoot>
+                <tr class="totals-row">
+                    <td colspan="2" style="text-align: right; padding-right: 15px;">GRAND TOTALS:</td>
+                    <td id="totCrates">0</td>
+                    <td id="totBundles">0</td>
+                    <td id="totBoxes">0</td>
+                    <td id="totBags">0</td>
+                    <td id="totFridge">0</td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <div class="signatures">
+            <div class="sig-box">
+                <div class="sig-label">DISPATCHED BY (Origin)</div>
+                <div class="sig-line"></div>
+                <div style="font-size: 11px; color: #6b7280;">Name / Signature / Date & Time</div>
+            </div>
+            <div class="sig-box">
+                <div class="sig-label">RECEIVED BY (Destination)</div>
+                <div class="sig-line"></div>
+                <div style="font-size: 11px; color: #6b7280;">Name / Signature / Date & Time</div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // 1. Extract the Data from the URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const encodedData = urlParams.get('data');
+
+        if (encodedData) {
+            try {
+                // 2. Decode and Parse the JSON
+                const decodedData = decodeURIComponent(encodedData);
+                const slipData = JSON.parse(decodedData);
+
+                // 3. Populate Header Info
+                document.getElementById('valExchangeID').innerText = slipData.ExchangeID || "N/A";
+                document.getElementById('valDate').innerText = slipData.Date || "N/A";
+                document.getElementById('valFrom').innerText = slipData.FromLocation || "N/A";
+                document.getElementById('valTo').innerText = slipData.ToLocation || "N/A";
+
+                // 4. Populate the Table Rows
+                const tableBody = document.getElementById('tableBody');
+                if (slipData.Rows && slipData.Rows.length > 0) {
+                    slipData.Rows.forEach(row => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td class="text-left" style="font-family: monospace; font-weight: bold;">${row.PackageID}</td>
+                            <td class="text-left" style="font-size: 11px;">${row.TR}</td> <td>${row.C > 0 ? row.C : '-'}</td>
+                            <td>${row.Bndl > 0 ? row.Bndl : '-'}</td>
+                            <td>${row.Bx > 0 ? row.Bx : '-'}</td>
+                            <td>${row.Bg > 0 ? row.Bg : '-'}</td>
+                            <td>${row.F > 0 ? row.F : '-'}</td>
+                        `;
+                        tableBody.appendChild(tr);
+                    });
+                } else {
+                    tableBody.innerHTML = `<tr><td colspan="7">No packages found for this exchange.</td></tr>`;
+                }
+
+                // 5. Populate Grand Totals
+                document.getElementById('totCrates').innerText = slipData.TC || 0;
+                document.getElementById('totBundles').innerText = slipData.TBndl || 0;
+                document.getElementById('totBoxes').innerText = slipData.TBx || 0;
+                document.getElementById('totBags').innerText = slipData.TBg || 0;
+                document.getElementById('totFridge').innerText = slipData.TF || 0;
+
+            } catch (error) {
+                console.error("Error parsing JSON data:", error);
+                alert("Error loading slip data. Please check the URL.");
+            }
+        } else {
+            document.getElementById('valExchangeID').innerText = "ERROR";
+            alert("No data found in the URL. Please generate the slip from Power Apps.");
+        }
+    </script>
+</body>
+</html>
