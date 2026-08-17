@@ -1,89 +1,74 @@
-// 1. Generate the Professional HTML String
-UpdateContext({
-    locHTMLReport: 
-    "<!DOCTYPE html>
-    <html>
-    <head>
-        <style>
-            body { font-family: 'Segoe UI', Arial, sans-serif; color: #333; margin: 20px; }
-            .header-container { text-align: center; margin-bottom: 30px; padding-bottom: 10px; border-bottom: 2px solid #0f172a; }
-            .report-title { font-size: 24px; font-weight: bold; color: #0f172a; margin: 0; }
-            .report-meta { font-size: 14px; color: #64748b; margin-top: 5px; }
-            table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 15px; }
-            th { background-color: #f8fafc; color: #0f172a; font-weight: 600; text-align: left; padding: 12px 8px; border-bottom: 2px solid #cbd5e1; }
-            td { padding: 10px 8px; border-bottom: 1px solid #e2e8f0; color: #334155; }
-            tr:nth-child(even) { background-color: #f8fafc; }
-            
-            /* Status Coloring for the Printout */
-            .status-red { color: #b91c1c; font-weight: bold; }
-            .status-orange { color: #c2410c; font-weight: bold; }
-            .status-rejected { background-color: #fee2e2; color: #991b1b; font-weight: bold; }
-            .status-draft { color: #b45309; font-style: italic; }
-        </style>
-    </head>
-    <body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pharmacy Tracking Report</title>
+    <style>
+        /* Base reset to ensure a clean slate before Power Apps styles take over */
+        body, html {
+            margin: 0;
+            padding: 0;
+            background-color: #ffffff;
+        }
         
-        <div class='header-container'>
-            <h1 class='report-title'>Pharmacy Tracking Module Report</h1>
-            <div class='report-meta'>
-                Generated on: " & Text(Now(), "[$-en-US]dd-mmm-yyyy hh:mm AM/PM") & " | 
-                Location: " & gblCurrentUser.PharmacyName & " | 
-                Total Records: " & CountRows(gal_Report.AllItems) & "
-            </div>
-        </div>
+        /* Loading message style for when the script is processing */
+        #loading-message {
+            text-align: center;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin-top: 50px;
+            color: #64748b;
+        }
 
-        <table>
-            <thead>
-                <tr>
-                    <th>TR Number</th>
-                    <th>Tracker Type</th>
-                    <th>D365 Status</th>
-                    <th>App Status</th>
-                    <th>Driver</th>
-                    <th>Days Open</th>
-                </tr>
-            </thead>
-            <tbody>
-                " & 
-                // 2. Loop through the currently filtered gallery items to build the table rows
-                Concat(
-                    gal_Report.AllItems,
-                    "<tr>
-                        <td><strong>" & AppTRNumber & "</strong></td>
-                        <td>" & AppTrackerType & "</td>
-                        <td>" & AppD365Status & "</td>
-                        
-                        <!-- Apply dynamic CSS classes based on Rejections or Drafts -->
-                        <td class='" & 
-                            If(
-                                AppRejectionStatus = ""Approved"", ""status-rejected"",
-                                AppIsDraft = ""Yes"", ""status-draft"",
-                                """"
-                            ) & "'>" & AppTrackerStatus & "
-                        </td>
-                        
-                        <td>" & Coalesce(AppAssignedDriver, "Unassigned") & "</td>
-                        
-                        <!-- Apply dynamic CSS classes for SLAs -->
-                        <td class='" & 
-                            If(
-                                AppIsOverdue, ""status-red"",
-                                AppDaysOld >= 3, ""status-orange"",
-                                """"
-                            ) & "'>" & AppDaysOld & " Day(s)
-                        </td>
-                    </tr>"
-                ) & "
-            </tbody>
-        </table>
-        
-    </body>
-    </html>"
-});
+        /* Hide the loading message when actually printing */
+        @media print {
+            #loading-message {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
 
-// 3. Launch the GitHub page and pass the HTML string via URL parameter
-// Replace this URL with your actual GitHub Pages URL
-Launch(
-    "https://your-organization.github.io/your-repo-name/print.html",
-    { reportData: locHTMLReport }
-);
+    <div id="loading-message">Preparing your report for printing...</div>
+    
+    <!-- This container will hold the HTML injected from Power Apps -->
+    <div id="report-container"></div>
+
+    <script>
+        window.onload = function() {
+            // 1. Grab the URL parameters passed by the Power Apps Launch() function
+            const urlParams = new URLSearchParams(window.location.search);
+            const reportHTML = urlParams.get('reportData');
+
+            // 2. Locate the container div
+            const container = document.getElementById('report-container');
+            const loadingMsg = document.getElementById('loading-message');
+
+            if (reportHTML) {
+                // 3. Inject the Power Apps HTML string into the page
+                container.innerHTML = reportHTML;
+                
+                // Hide the loading text
+                loadingMsg.style.display = 'none';
+
+                // 4. Trigger the native browser print dialog automatically
+                // A slight 500ms delay ensures all CSS and text are fully rendered before the dialog locks the screen
+                setTimeout(() => {
+                    window.print();
+                }, 500);
+
+            } else {
+                // Fallback if someone opens the URL directly without clicking the button in Power Apps
+                loadingMsg.innerHTML = "<h2>No report data found.</h2><p>Please launch this page directly from the Pharmacy Module Print Button.</p>";
+                loadingMsg.style.color = "#b91c1c";
+            }
+        };
+
+        // Optional: Automatically close the tab after the user prints or cancels the print dialog
+        window.onafterprint = function() {
+            window.close();
+        };
+    </script>
+</body>
+</html>
