@@ -5,67 +5,98 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pharmacy Tracking Report</title>
     <style>
-        /* Base reset to ensure a clean slate before Power Apps styles take over */
-        body, html {
-            margin: 0;
-            padding: 0;
-            background-color: #ffffff;
-        }
+        body { font-family: 'Segoe UI', Arial, sans-serif; color: #333; margin: 20px; }
+        .header-container { text-align: center; margin-bottom: 30px; padding-bottom: 10px; border-bottom: 2px solid #0f172a; }
+        .report-title { font-size: 24px; font-weight: bold; color: #0f172a; margin: 0; }
+        .report-meta { font-size: 14px; color: #64748b; margin-top: 5px; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 15px; }
+        th { background-color: #f8fafc; color: #0f172a; font-weight: 600; text-align: left; padding: 12px 8px; border-bottom: 2px solid #cbd5e1; }
+        td { padding: 10px 8px; border-bottom: 1px solid #e2e8f0; color: #334155; }
+        tr:nth-child(even) { background-color: #f8fafc; }
         
-        /* Loading message style for when the script is processing */
-        #loading-message {
-            text-align: center;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            margin-top: 50px;
-            color: #64748b;
-        }
-
-        /* Hide the loading message when actually printing */
-        @media print {
-            #loading-message {
-                display: none;
-            }
-        }
+        /* Status Colors */
+        .status-red { color: #b91c1c; font-weight: bold; }
+        .status-orange { color: #c2410c; font-weight: bold; }
+        .status-rejected { background-color: #fee2e2; color: #991b1b; font-weight: bold; }
+        .status-draft { color: #b45309; font-style: italic; }
     </style>
 </head>
 <body>
 
-    <div id="loading-message">Preparing your report for printing...</div>
-    
-    <!-- This container will hold the HTML injected from Power Apps -->
-    <div id="report-container"></div>
+    <div class="header-container">
+        <h1 class="report-title">Pharmacy Tracking Module Report</h1>
+        <div class="report-meta" id="report-meta">Loading data...</div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>TR Number</th>
+                <th>Tracker Type</th>
+                <th>D365 Status</th>
+                <th>App Status</th>
+                <th>Driver</th>
+                <th>Days Open</th>
+            </tr>
+        </thead>
+        <tbody id="table-body">
+            <!-- Rows injected by JavaScript -->
+        </tbody>
+    </table>
 
     <script>
         window.onload = function() {
-            // 1. Grab the URL parameters passed by the Power Apps Launch() function
             const urlParams = new URLSearchParams(window.location.search);
-            const reportHTML = urlParams.get('reportData');
+            const encodedData = urlParams.get('data');
 
-            // 2. Locate the container div
-            const container = document.getElementById('report-container');
-            const loadingMsg = document.getElementById('loading-message');
+            if (encodedData) {
+                try {
+                    // 1. Decode and parse the JSON string from Power Apps
+                    const reportData = JSON.parse(decodeURIComponent(encodedData));
+                    
+                    // 2. Set the Header Info
+                    document.getElementById('report-meta').innerHTML = 
+                        `Generated on: ${reportData.Date} | Location: ${reportData.Location} | Total Records: ${reportData.Total}`;
 
-            if (reportHTML) {
-                // 3. Inject the Power Apps HTML string into the page
-                container.innerHTML = reportHTML;
-                
-                // Hide the loading text
-                loadingMsg.style.display = 'none';
+                    // 3. Build the Table Rows dynamically
+                    const tbody = document.getElementById('table-body');
+                    let htmlRows = '';
 
-                // 4. Trigger the native browser print dialog automatically
-                // A slight 500ms delay ensures all CSS and text are fully rendered before the dialog locks the screen
-                setTimeout(() => {
-                    window.print();
-                }, 500);
+                    reportData.Rows.forEach(row => {
+                        // Apply CSS classes based on the Y/N flags we set in Power Apps
+                        let appStatusClass = '';
+                        if (row.Rej === 'Y') appStatusClass = 'status-rejected';
+                        else if (row.Drf === 'Y') appStatusClass = 'status-draft';
 
+                        let daysClass = '';
+                        if (row.OD === 'Y') daysClass = 'status-red';
+                        else if (parseInt(row.Day) >= 3) daysClass = 'status-orange';
+
+                        htmlRows += `
+                            <tr>
+                                <td><strong>${row.TR}</strong></td>
+                                <td>${row.Typ}</td>
+                                <td>${row.Sts}</td>
+                                <td class="${appStatusClass}">${row.App}</td>
+                                <td>${row.Drv}</td>
+                                <td class="${daysClass}">${row.Day} Day(s)</td>
+                            </tr>
+                        `;
+                    });
+
+                    tbody.innerHTML = htmlRows;
+
+                    // 4. Trigger print automatically
+                    setTimeout(() => { window.print(); }, 500);
+
+                } catch (e) {
+                    document.getElementById('report-meta').innerHTML = "<span style='color:red;'>Error parsing report data.</span>";
+                }
             } else {
-                // Fallback if someone opens the URL directly without clicking the button in Power Apps
-                loadingMsg.innerHTML = "<h2>No report data found.</h2><p>Please launch this page directly from the Pharmacy Module Print Button.</p>";
-                loadingMsg.style.color = "#b91c1c";
+                document.getElementById('report-meta').innerHTML = "<span style='color:red;'>No report data found.</span>";
             }
         };
 
-        // Optional: Automatically close the tab after the user prints or cancels the print dialog
         window.onafterprint = function() {
             window.close();
         };
