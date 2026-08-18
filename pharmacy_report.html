@@ -5,27 +5,125 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pharmacy Tracking Report</title>
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; color: #333; margin: 20px; }
-        .header-container { text-align: center; margin-bottom: 30px; padding-bottom: 10px; border-bottom: 2px solid #0f172a; }
-        .report-title { font-size: 24px; font-weight: bold; color: #0f172a; margin: 0; }
-        .report-meta { font-size: 14px; color: #64748b; margin-top: 5px; }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 15px; }
-        th { background-color: #f8fafc; color: #0f172a; font-weight: 600; text-align: left; padding: 12px 8px; border-bottom: 2px solid #cbd5e1; }
-        td { padding: 10px 8px; border-bottom: 1px solid #e2e8f0; color: #334155; }
-        tr:nth-child(even) { background-color: #f8fafc; }
-        
-        /* Status Colors */
-        .status-red { color: #b91c1c; font-weight: bold; }
-        .status-orange { color: #c2410c; font-weight: bold; }
-        .status-rejected { background-color: #fee2e2; color: #991b1b; font-weight: bold; }
-        .status-draft { color: #b45309; font-style: italic; }
+        /* Modern Enterprise CSS Reset & Variables */
+        :root {
+            --primary-dark: #0f172a;
+            --text-main: #334155;
+            --text-muted: #64748b;
+            --border-light: #e2e8f0;
+            --bg-light: #f8fafc;
+        }
+
+        body { 
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; 
+            color: var(--text-main); 
+            margin: 40px; 
+            background-color: white;
+        }
+
+        /* 🌟 NEW: Flexbox Header for Logos */
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid var(--primary-dark);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .header-logo {
+            max-height: 70px; /* Adjust this to make logos bigger/smaller */
+            width: auto;
+            object-fit: contain;
+        }
+
+        .header-center {
+            text-align: center;
+            flex-grow: 1;
+            padding: 0 20px;
+        }
+
+        .report-title { 
+            font-size: 26px; 
+            font-weight: 700; 
+            color: var(--primary-dark); 
+            margin: 0 0 8px 0; 
+            letter-spacing: -0.5px;
+        }
+
+        .report-meta { 
+            font-size: 14px; 
+            color: var(--text-muted); 
+            font-weight: 500;
+        }
+
+        /* 🌟 NEW: Professional Table Styling */
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            font-size: 13px; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th { 
+            background-color: var(--bg-light); 
+            color: var(--primary-dark); 
+            font-weight: 600; 
+            text-align: left; 
+            padding: 14px 12px; 
+            border-bottom: 2px solid #cbd5e1; 
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+
+        td { 
+            padding: 12px; 
+            border-bottom: 1px solid var(--border-light); 
+            vertical-align: middle;
+        }
+
+        tr:nth-child(even) { background-color: var(--bg-light); }
+        tr:hover { background-color: #f1f5f9; } /* Slight hover effect on screen */
+
+        /* 🌟 NEW: Modern UI Badges for Statuses */
+        .badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-red { background-color: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+        .status-orange { background-color: #ffedd5; color: #c2410c; border: 1px solid #fed7aa; }
+        .status-green { background-color: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+        .status-rejected { background-color: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+        .status-draft { background-color: #fef3c7; color: #b45309; border: 1px solid #fde68a; font-style: italic; }
+        .status-normal { color: var(--text-main); font-weight: 500; }
+
+        /* Print-Specific Optimizations */
+        @media print {
+            body { margin: 0; }
+            table { box-shadow: none; border: 1px solid var(--border-light); }
+            /* Force browsers to print the background colors of the badges */
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        }
     </style>
 </head>
 <body>
 
-    <div class="header-container">
-        <h1 class="report-title">Pharmacy Tracking Report</h1>
-        <div class="report-meta" id="report-meta">Loading data...</div>
+    <div class="report-header">
+        <img src="MedicinaLogo.png" alt="Medicina Logo" class="header-logo" onerror="this.style.display='none'">
+        
+        <div class="header-center">
+            <h1 class="report-title">Pharmacy Tracking Report</h1>
+            <div class="report-meta" id="report-meta">Loading data...</div>
+        </div>
+
+        <img src="manara_phar.png" alt="Manara Pharmacy Logo" class="header-logo" onerror="this.style.display='none'">
     </div>
 
     <table>
@@ -36,13 +134,11 @@
                 <th>D365 Status</th>
                 <th>App Status</th>
                 <th>Driver</th>
-                <th>Received By</th>
                 <th>Days Open</th>
             </tr>
         </thead>
         <tbody id="table-body">
-            <!-- Rows injected by JavaScript -->
-        </tbody>
+            </tbody>
     </table>
 
     <script>
@@ -52,44 +148,44 @@
 
             if (encodedData) {
                 try {
-                    // 1. Decode and parse the JSON string from Power Apps
+                    // Decode and parse the JSON string from Power Apps
                     const reportData = JSON.parse(decodeURIComponent(encodedData));
                     
-                    // 2. Set the Header Info
+                    // Set the Header Info
                     document.getElementById('report-meta').innerHTML = 
-                        `Generated on: ${reportData.Date} | Location: ${reportData.Location} | Total Records: ${reportData.Total}`;
+                        `Generated: ${reportData.Date} &nbsp;|&nbsp; Location: ${reportData.Location} &nbsp;|&nbsp; Total Records: ${reportData.Total}`;
 
-                    // 3. Build the Table Rows dynamically
+                    // Build the Table Rows
                     const tbody = document.getElementById('table-body');
                     let htmlRows = '';
 
                     reportData.Rows.forEach(row => {
-                        // Apply CSS classes based on the Y/N flags we set in Power Apps
-                        let appStatusClass = '';
-                        if (row.Rej === 'Y') appStatusClass = 'status-rejected';
-                        else if (row.Drf === 'Y') appStatusClass = 'status-draft';
+                        // Determine App Status Badge
+                        let appStatusClass = 'status-normal';
+                        if (row.Rej === 'Y') appStatusClass = 'status-rejected badge';
+                        else if (row.Drf === 'Y') appStatusClass = 'status-draft badge';
 
-                        let daysClass = '';
-                        if (row.OD === 'Y') daysClass = 'status-red';
-                        else if (parseInt(row.Day) >= 3) daysClass = 'status-orange';
+                        // Determine SLA Days Badge
+                        let daysClass = 'status-green badge'; // Default to green if under 3 days
+                        if (row.OD === 'Y') daysClass = 'status-red badge';
+                        else if (parseInt(row.Day) >= 3) daysClass = 'status-orange badge';
 
                         htmlRows += `
                             <tr>
                                 <td><strong>${row.TR}</strong></td>
                                 <td>${row.Typ}</td>
                                 <td>${row.Sts}</td>
-                                <td class="${appStatusClass}">${row.App}</td>
+                                <td><span class="${appStatusClass}">${row.App}</span></td>
                                 <td>${row.Drv}</td>
-                                <td>${row.Rec}</td>
-                                <td class="${daysClass}">${row.Day} Day(s)</td>
+                                <td><span class="${daysClass}">${row.Day} Day(s)</span></td>
                             </tr>
                         `;
                     });
 
                     tbody.innerHTML = htmlRows;
 
-                    // 4. Trigger print automatically
-                    setTimeout(() => { window.print(); }, 500);
+                    // Trigger print automatically
+                    setTimeout(() => { window.print(); }, 800);
 
                 } catch (e) {
                     document.getElementById('report-meta').innerHTML = "<span style='color:red;'>Error parsing report data.</span>";
