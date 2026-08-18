@@ -21,18 +21,18 @@
             background-color: white;
         }
 
-        /* 🌟 NEW: Flexbox Header for Logos */
+        /* Flexbox Header for Logos */
         .report-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             border-bottom: 3px solid var(--primary-dark);
             padding-bottom: 20px;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
 
         .header-logo {
-            max-height: 70px; /* Adjust this to make logos bigger/smaller */
+            max-height: 70px; 
             width: auto;
             object-fit: contain;
         }
@@ -47,17 +47,52 @@
             font-size: 26px; 
             font-weight: 700; 
             color: var(--primary-dark); 
-            margin: 0 0 8px 0; 
+            margin: 0; 
             letter-spacing: -0.5px;
         }
 
-        .report-meta { 
-            font-size: 14px; 
-            color: var(--text-muted); 
-            font-weight: 500;
+        /* 🌟 NEW: Styled Summary Box for Meta Info */
+        .meta-box {
+            background-color: var(--bg-light);
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 15px 30px;
+            margin: 0 auto 30px auto;
+            display: inline-flex;
+            gap: 40px;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
         }
 
-        /* 🌟 NEW: Professional Table Styling */
+        .meta-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border-right: 1px solid var(--border-light);
+            padding-right: 40px;
+        }
+
+        .meta-item:last-child {
+            border-right: none;
+            padding-right: 0;
+        }
+
+        .meta-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .meta-value {
+            font-size: 16px;
+            color: var(--primary-dark);
+            font-weight: 700;
+        }
+
+        /* Professional Table Styling */
         table { 
             width: 100%; 
             border-collapse: collapse; 
@@ -86,9 +121,8 @@
         }
 
         tr:nth-child(even) { background-color: var(--bg-light); }
-        tr:hover { background-color: #f1f5f9; } /* Slight hover effect on screen */
 
-        /* 🌟 NEW: Modern UI Badges for Statuses */
+        /* Modern UI Badges */
         .badge {
             padding: 4px 10px;
             border-radius: 12px;
@@ -104,11 +138,11 @@
         .status-draft { background-color: #fef3c7; color: #b45309; border: 1px solid #fde68a; font-style: italic; }
         .status-normal { color: var(--text-main); font-weight: 500; }
 
-        /* Print-Specific Optimizations */
+        /* Print Optimizations */
         @media print {
             body { margin: 0; }
             table { box-shadow: none; border: 1px solid var(--border-light); }
-            /* Force browsers to print the background colors of the badges */
+            .meta-box { box-shadow: none; border: 1px solid #cbd5e1; }
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         }
     </style>
@@ -117,14 +151,13 @@
 
     <div class="report-header">
         <img src="MedicinaLogo.png" alt="Medicina Logo" class="header-logo" onerror="this.style.display='none'">
-        
         <div class="header-center">
             <h1 class="report-title">Pharmacy Tracking Report</h1>
-            <div class="report-meta" id="report-meta">Loading data...</div>
         </div>
-
         <img src="manara_phar.png" alt="Manara Pharmacy Logo" class="header-logo" onerror="this.style.display='none'">
     </div>
+
+    <div id="report-meta-container" style="text-align: center;"></div>
 
     <table>
         <thead>
@@ -134,11 +167,12 @@
                 <th>D365 Status</th>
                 <th>App Status</th>
                 <th>Driver</th>
+                <th>Received By</th>
                 <th>Days Open</th>
             </tr>
         </thead>
         <tbody id="table-body">
-            </tbody>
+        </tbody>
     </table>
 
     <script>
@@ -148,25 +182,37 @@
 
             if (encodedData) {
                 try {
-                    // Decode and parse the JSON string from Power Apps
                     const reportData = JSON.parse(decodeURIComponent(encodedData));
                     
-                    // Set the Header Info
-                    document.getElementById('report-meta').innerHTML = 
-                        `Generated: ${reportData.Date} &nbsp;|&nbsp; Location: ${reportData.Location} &nbsp;|&nbsp; Total Records: ${reportData.Total}`;
+                    // 🌟 NEW: Inject the beautifully boxed meta data
+                    // Notice we use reportData.DateRange here!
+                    document.getElementById('report-meta-container').innerHTML = `
+                        <div class="meta-box">
+                            <div class="meta-item">
+                                <span class="meta-label">Location</span>
+                                <span class="meta-value">${reportData.Location}</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">Selected Date Range</span>
+                                <span class="meta-value">${reportData.DateRange || reportData.Date}</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">Total Records</span>
+                                <span class="meta-value">${reportData.Total}</span>
+                            </div>
+                        </div>
+                    `;
 
                     // Build the Table Rows
                     const tbody = document.getElementById('table-body');
                     let htmlRows = '';
 
                     reportData.Rows.forEach(row => {
-                        // Determine App Status Badge
                         let appStatusClass = 'status-normal';
                         if (row.Rej === 'Y') appStatusClass = 'status-rejected badge';
                         else if (row.Drf === 'Y') appStatusClass = 'status-draft badge';
 
-                        // Determine SLA Days Badge
-                        let daysClass = 'status-green badge'; // Default to green if under 3 days
+                        let daysClass = 'status-green badge'; 
                         if (row.OD === 'Y') daysClass = 'status-red badge';
                         else if (parseInt(row.Day) >= 3) daysClass = 'status-orange badge';
 
@@ -177,6 +223,7 @@
                                 <td>${row.Sts}</td>
                                 <td><span class="${appStatusClass}">${row.App}</span></td>
                                 <td>${row.Drv}</td>
+                                <td>${row.Rec}</td>
                                 <td><span class="${daysClass}">${row.Day} Day(s)</span></td>
                             </tr>
                         `;
@@ -184,14 +231,13 @@
 
                     tbody.innerHTML = htmlRows;
 
-                    // Trigger print automatically
                     setTimeout(() => { window.print(); }, 800);
 
                 } catch (e) {
-                    document.getElementById('report-meta').innerHTML = "<span style='color:red;'>Error parsing report data.</span>";
+                    document.getElementById('report-meta-container').innerHTML = "<span style='color:red;'>Error parsing report data.</span>";
                 }
             } else {
-                document.getElementById('report-meta').innerHTML = "<span style='color:red;'>No report data found.</span>";
+                document.getElementById('report-meta-container').innerHTML = "<span style='color:red;'>No report data found.</span>";
             }
         };
 
