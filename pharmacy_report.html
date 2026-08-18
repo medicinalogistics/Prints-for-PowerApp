@@ -27,12 +27,12 @@
             justify-content: space-between;
             align-items: center;
             border-bottom: 3px solid var(--primary-dark);
-            padding-bottom: 20px;
+            padding-bottom: 15px; /* Slightly reduced padding to match smaller logos */
             margin-bottom: 20px;
         }
 
         .header-logo {
-            max-height: 70px; 
+            max-height: 50px; /* 🌟 FIX: Reduced logo size from 70px to 50px */
             width: auto;
             object-fit: contain;
         }
@@ -44,14 +44,14 @@
         }
 
         .report-title { 
-            font-size: 26px; 
+            font-size: 20px; /* 🌟 FIX: Reduced heading size from 26px to 20px */
             font-weight: 700; 
             color: var(--primary-dark); 
             margin: 0; 
             letter-spacing: -0.5px;
         }
 
-        /* 🌟 NEW: Styled Summary Box for Meta Info */
+        /* Styled Summary Box for Meta Info */
         .meta-box {
             background-color: var(--bg-light);
             border: 1px solid var(--border-light);
@@ -168,8 +168,7 @@
                 <th>App Status</th>
                 <th>Driver</th>
                 <th>Received By</th>
-                <!-- <th>Days Open</th> -->
-            </tr>
+                </tr>
         </thead>
         <tbody id="table-body">
         </tbody>
@@ -184,8 +183,6 @@
                 try {
                     const reportData = JSON.parse(decodeURIComponent(encodedData));
                     
-                    // 🌟 NEW: Inject the beautifully boxed meta data
-                    // Notice we use reportData.DateRange here!
                     document.getElementById('report-meta-container').innerHTML = `
                         <div class="meta-box">
                             <div class="meta-item">
@@ -203,7 +200,6 @@
                         </div>
                     `;
 
-                    // Build the Table Rows
                     const tbody = document.getElementById('table-body');
                     let htmlRows = '';
 
@@ -216,6 +212,7 @@
                         if (row.OD === 'Y') daysClass = 'status-red badge';
                         else if (parseInt(row.Day) >= 3) daysClass = 'status-orange badge';
 
+                        // 🌟 FIX: Restored the missing backtick (`) at the end of this block
                         htmlRows += `
                             <tr>
                                 <td><strong>${row.TR}</strong></td>
@@ -225,7 +222,7 @@
                                 <td>${row.Drv}</td>
                                 <td>${row.Rec}</td>
                             </tr>
-                        ;
+                        `;
                     });
 
                     tbody.innerHTML = htmlRows;
