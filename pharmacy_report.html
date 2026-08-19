@@ -181,51 +181,70 @@
 
             if (encodedData) {
                 try {
+                    // ... existing script setup ...
+
                     const reportData = JSON.parse(decodeURIComponent(encodedData));
                     
+                    // Map the micro-keys back to the summary box
                     document.getElementById('report-meta-container').innerHTML = `
                         <div class="meta-box">
                             <div class="meta-item">
                                 <span class="meta-label">Location</span>
-                                <span class="meta-value">${reportData.Location}</span>
+                                <span class="meta-value">${reportData.L}</span>
                             </div>
                             <div class="meta-item">
                                 <span class="meta-label">Selected Date Range</span>
-                                <span class="meta-value">${reportData.DateRange || reportData.Date}</span>
+                                <span class="meta-value">${reportData.DR || reportData.D}</span>
                             </div>
                             <div class="meta-item">
                                 <span class="meta-label">Total Records</span>
-                                <span class="meta-value">${reportData.Total}</span>
+                                <span class="meta-value">${reportData.T}</span>
                             </div>
                         </div>
                     `;
-
+                    
                     const tbody = document.getElementById('table-body');
                     let htmlRows = '';
-
-                    reportData.Rows.forEach(row => {
-                        let appStatusClass = 'status-normal';
-                        if (row.Rej === 'Y') appStatusClass = 'status-rejected badge';
-                        else if (row.Drf === 'Y') appStatusClass = 'status-draft badge';
-
-                        let daysClass = 'status-green badge'; 
-                        if (row.OD === 'Y') daysClass = 'status-red badge';
-                        else if (parseInt(row.Day) >= 3) daysClass = 'status-orange badge';
-
-                        // 🌟 FIX: Restored the missing backtick (`) at the end of this block
-                        htmlRows += `
-                            <tr>
-                                <td><strong>${row.TR}</strong></td>
-                                <td>${row.Typ}</td>
-                                <td>${row.Sts}</td>
-                                <td><span class="${appStatusClass}">${row.App}</span></td>
-                                <td>${row.Drv}</td>
-                                <td>${row.Rec}</td>
-                            </tr>
-                        `;
-                    });
-
+                    
+                    // 🌟 THE DECODER: Split the giant string back into rows using the tilde (~)
+                    if (reportData.R) {
+                        const rowsArray = reportData.R.split('~');
+                    
+                        rowsArray.forEach(rowStr => {
+                            if (rowStr.trim() !== '') {
+                                // Split the row into columns using the pipe (|)
+                                const cols = rowStr.split('|');
+                                
+                                // Map the array positions back to variables (0=TR, 1=Typ, etc.)
+                                const TR = cols[0], Typ = cols[1], Sts = cols[2], App = cols[3];
+                                const Drv = cols[4], Rec = cols[5], Day = cols[6];
+                                const Rej = cols[7], Drf = cols[8], OD = cols[9];
+                    
+                                let appStatusClass = 'status-normal';
+                                if (Rej === 'Y') appStatusClass = 'status-rejected badge';
+                                else if (Drf === 'Y') appStatusClass = 'status-draft badge';
+                    
+                                let daysClass = 'status-green badge'; 
+                                if (OD === 'Y') daysClass = 'status-red badge';
+                                else if (parseInt(Day) >= 3) daysClass = 'status-orange badge';
+                    
+                                htmlRows += `
+                                    <tr>
+                                        <td><strong>${TR}</strong></td>
+                                        <td>${Typ}</td>
+                                        <td>${Sts}</td>
+                                        <td><span class="${appStatusClass}">${App}</span></td>
+                                        <td>${Drv}</td>
+                                        <td>${Rec}</td>
+                                    </tr>
+                                `;
+                            }
+                        });
+                    }
+                    
                     tbody.innerHTML = htmlRows;
+
+// ... rest of your print script ...
 
                     setTimeout(() => { window.print(); }, 800);
 
