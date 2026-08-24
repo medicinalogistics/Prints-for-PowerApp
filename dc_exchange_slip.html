@@ -304,8 +304,7 @@
         <table>
             <thead>
                 <tr>
-                    <th style="width: 25%;">Package ID</th>
-                    <th style="width: 35%;">TR Numbers</th>
+                    <th style="width: 40%;">Package ID</th>
                     <th>Crates</th>
                     <th>Bundles</th>
                     <th>Boxes</th>
@@ -317,7 +316,7 @@
             </tbody>
             <tfoot>
                 <tr class="totals-row">
-                    <td colspan="2" style="text-align: right; padding-right: 15px;">GRAND TOTALS:</td>
+                    <td style="text-align: right; padding-right: 15px;">GRAND TOTALS:</td>
                     <td id="totCrates">0</td>
                     <td id="totBundles">0</td>
                     <td id="totBoxes">0</td>
@@ -390,7 +389,6 @@
                         const tr = document.createElement('tr');
                         tr.innerHTML = `
                             <td class="text-left" style="font-family: monospace; font-weight: bold;">${row.PackageID}</td>
-                            <td class="text-left" style="font-size: 11px;">${row.TR}</td>
                             <td>${row.C > 0 ? row.C : '-'}</td>
                             <td>${row.Bndl > 0 ? row.Bndl : '-'}</td>
                             <td>${row.Bx > 0 ? row.Bx : '-'}</td>
@@ -400,7 +398,7 @@
                         tableBody.appendChild(tr);
                     });
                 } else {
-                    tableBody.innerHTML = `<tr><td colspan="7">No packages found for this exchange.</td></tr>`;
+                    tableBody.innerHTML = `<tr><td colspan="6">No packages found for this exchange.</td></tr>`;
                 }
 
                 // 5. Populate Table Bottom Totals
