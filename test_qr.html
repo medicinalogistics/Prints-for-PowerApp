@@ -5,41 +5,70 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Zebra Shipment Labels</title>
     <style>
-        /* Updated to 15cm width and 10cm height */
-        @page { size: 15cm 10cm; margin: 0; }
+        /* Set page to Vertical Portrait: 10cm width, 15cm height */
+        @page { size: 10cm 15cm; margin: 0; }
         body { margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; background: #fff; }
         
-        /* Flexbox row layout for side-by-side design */
+        /* Flexbox column layout for Top-to-Bottom design */
         .qr-item {
-            width: 15cm; height: 10cm;
-            display: flex; flex-direction: row;
+            width: 10cm; 
+            height: 15cm;
+            display: flex; 
+            flex-direction: column;
+            justify-content: flex-start; 
             align-items: center;
+            text-align: center;
             box-sizing: border-box;
-            padding: 8mm; page-break-after: always; gap: 8mm;
+            padding: 8mm; 
+            page-break-after: always; 
         }
         
-        .left-col {
-            display: flex; justify-content: center; align-items: center;
+        .header-store { 
+            font-size: 14pt; 
+            font-weight: 800; 
+            text-transform: uppercase; 
+            margin-bottom: 5mm; 
+            margin-top: 2mm;
+            color: #4B5563; 
         }
         
-        /* Scaled up QR code to fit the larger paper */
-        .qr-item img { width: 5.5cm; height: 5.5cm; object-fit: contain; }
-        
-        .right-col {
-            display: flex; flex-direction: column; justify-content: center; align-items: flex-start; text-align: left;
-            flex: 1; height: 100%;
+        /* Scaled up QR code for vertical layout */
+        .qr-item img { 
+            width: 7cm; 
+            height: 7cm; 
+            object-fit: contain; 
+            margin-bottom: 5mm;
         }
         
-        .header-store { font-size: 12pt; font-weight: 800; text-transform: uppercase; margin-bottom: 3mm; color: #4B5563; }
+        /* Pharmacy Name */
+        .pharmacy-name { 
+            font-size: 24pt !important; 
+            font-weight: 900; 
+            margin-bottom: 3mm; 
+            line-height: 1.1; 
+            color: #111827; 
+            width: 100%;
+        }
         
-        /* Much larger and bolder Pharmacy Name */
-        .pharmacy-name { font-size: 26pt !important; font-weight: 900; margin-bottom: 3mm; line-height: 1.1; color: #111827; }
+        .container-info { 
+            font-size: 16pt; 
+            font-weight: 700; 
+            color: #000; 
+            margin-bottom: 4mm; 
+        }
         
-        .container-info { font-size: 16pt; font-weight: 700; color: #000; margin-bottom: 2mm; }
+        .tr-numbers { 
+            font-size: 12pt; 
+            width: 100%;
+            word-break: break-word; 
+            line-height: 1.3; 
+            color: #374151; 
+        }
         
-        .tr-numbers { font-size: 11pt; max-width: 100%; word-break: break-word; line-height: 1.3; color: #374151; }
-        
-        @media print { body { margin: 0; } .qr-item { page-break-after: always; break-after: page; } }
+        @media print { 
+            body { margin: 0; -webkit-print-color-adjust: exact; } 
+            .qr-item { page-break-after: always; break-after: page; } 
+        }
     </style>
 </head>
 <body>
@@ -73,19 +102,15 @@
                     let uniqueTRs = [...new Set(trArray)];
                     let displayTRs = uniqueTRs.join(', ');
 
-                    // Updated HTML structure separating left (QR) and right (Text)
+                    // Vertical layout: Top to Bottom
                     const div = document.createElement('div');
                     div.className = 'qr-item';
                     div.innerHTML = `
-                        <div class="left-col">
-                            <img src="${qrCodeURL}">
-                        </div>
-                        <div class="right-col">
-                            <div class="header-store">Medicina Drug Store</div>
-                            <div class="pharmacy-name">${item.PharmacyName || ''}</div>
-                            <div class="container-info">${item.ContainerInfo || ''}</div>
-                            <div class="tr-numbers"><strong>TR's:</strong> ${displayTRs}</div>
-                        </div>
+                        <div class="header-store">Medicina Drug Store</div>
+                        <img src="${qrCodeURL}">
+                        <div class="pharmacy-name">${item.PharmacyName || ''}</div>
+                        <div class="container-info">${item.ContainerInfo || ''}</div>
+                        <div class="tr-numbers"><strong>TR's:</strong> ${displayTRs}</div>
                     `;
                     qrContainer.appendChild(div);
                 });
