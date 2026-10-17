@@ -5,20 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Zebra Shipment Labels</title>
     <style>
-        /* Explicitly force Landscape layout */
-        @page { size: 15cm 10cm landscape; margin: 0; }
+        /* Force the physical feed size of the printer (10cm wide, 15cm tall) */
+        @page { size: 10cm 15cm; margin: 0; }
         body { margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; background: #fff; }
         
-        /* Main Container: Exactly 15x10cm */
+        /* The physical portrait page container */
+        .page-wrapper {
+            width: 10cm;
+            height: 15cm;
+            position: relative;
+            page-break-after: always;
+            overflow: hidden;
+        }
+        
+        /* The 15x10 landscape label, rotated 90 degrees to fit the 10x15 paper perfectly */
         .qr-item {
             width: 15cm; 
             height: 10cm;
             display: flex; 
             flex-direction: row;
             box-sizing: border-box;
-            page-break-after: always; 
-            page-break-inside: avoid;
-            overflow: hidden;
+            
+            /* CSS Rotation to fix the printer orientation automatically */
+            transform-origin: top left;
+            transform: rotate(90deg) translateY(-100%);
+            position: absolute;
+            top: 0;
+            left: 0;
         }
         
         /* Left Box: Exactly 5cm wide */
@@ -32,7 +45,7 @@
             align-items: center;
         }
         
-        /* QR Code fits perfectly inside the 5cm box minus the 10px padding */
+        /* QR Code fits perfectly inside the 5cm box */
         .left-box img { 
             width: 100%; 
             max-height: 100%; 
@@ -60,7 +73,7 @@
         
         @media print { 
             body { margin: 0; -webkit-print-color-adjust: exact; } 
-            .qr-item { page-break-after: always; break-after: page; } 
+            .page-wrapper { page-break-after: always; break-after: page; } 
         }
     </style>
 </head>
@@ -95,20 +108,23 @@
                     let uniqueTRs = [...new Set(trArray)];
                     let displayTRs = uniqueTRs.join(', ');
 
-                    const div = document.createElement('div');
-                    div.className = 'qr-item';
-                    div.innerHTML = `
-                        <div class="left-box">
-                            <img src="${qrCodeURL}">
-                        </div>
-                        <div class="right-box">
-                            <div class="header-store">Medicina Drug Store</div>
-                            <div class="pharmacy-name">${item.PharmacyName || ''}</div>
-                            <div class="container-info">${item.ContainerInfo || ''}</div>
-                            <div class="tr-numbers"><strong>TR's:</strong> ${displayTRs}</div>
+                    const wrapperDiv = document.createElement('div');
+                    wrapperDiv.className = 'page-wrapper';
+                    
+                    wrapperDiv.innerHTML = `
+                        <div class="qr-item">
+                            <div class="left-box">
+                                <img src="${qrCodeURL}">
+                            </div>
+                            <div class="right-box">
+                                <div class="header-store">Medicina Drug Store</div>
+                                <div class="pharmacy-name">${item.PharmacyName || ''}</div>
+                                <div class="container-info">${item.ContainerInfo || ''}</div>
+                                <div class="tr-numbers"><strong>TR's:</strong> ${displayTRs}</div>
+                            </div>
                         </div>
                     `;
-                    qrContainer.appendChild(div);
+                    qrContainer.appendChild(wrapperDiv);
                 });
             } catch (e) { 
                 qrContainer.innerHTML = 'Error parsing data.'; 
